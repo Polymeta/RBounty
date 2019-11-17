@@ -263,7 +263,7 @@ public class RBountyPlugin {
     }
     
     CommandSpec bountyTop = CommandSpec.builder()
-    	    .description(Text.of("Shows the leaderboards for bounty"))
+    	    .description(Text.of("Shows the bounty leaderboards"))
     	    .permission("rbounty.command.user")
             .arguments(
             		GenericArguments.optional(GenericArguments.onlyOne(GenericArguments.integer(Text.of("page")))))
@@ -278,6 +278,23 @@ public class RBountyPlugin {
 			return CommandResult.success();
         }
     }
+    
+    CommandSpec bountyTopOnline = CommandSpec.builder()
+    	    .description(Text.of("Shows the bounty leaderboards for online players."))
+    	    .permission("rbounty.command.user")
+            .arguments(
+            		GenericArguments.optional(GenericArguments.onlyOne(GenericArguments.integer(Text.of("page")))))
+    	    .executor(new TopOnlineBounty())
+    	    .build();
+    
+    public class TopOnlineBounty implements CommandExecutor {
+        @Override
+        public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
+			int page = args.<Integer>getOne("page").orElse(1);
+			src.sendMessage(parseLeaderboard(page * 10 - 10, page * 10, true));
+			return CommandResult.success();
+        }
+    }
 	
     CommandSpec bountyMain = CommandSpec.builder()
     	    .description(Text.of("Master command for bounty"))
@@ -286,6 +303,7 @@ public class RBountyPlugin {
     	    .child(bountyView, "view")
     	    .child(bountyAdd, "add")
     	    .child(bountyTop, "top")
+    	    .child(bountyTopOnline, "topOnline")
     	    .build();
     
     public Text parseLeaderboard(int start, int end, boolean online)
