@@ -1,7 +1,6 @@
 package io.github.rm2023.rbounty;
 
 import org.spongepowered.api.Game;
-import org.spongepowered.api.Server;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
@@ -32,7 +31,6 @@ import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.text.format.TextStyles;
 import org.spongepowered.api.util.generator.dummy.DummyObjectProvider;
-import org.spongepowered.api.util.Color;
 import org.spongepowered.api.util.TypeTokens;
 
 import com.google.inject.Inject;
@@ -114,7 +112,7 @@ public class RBountyPlugin {
 			User killed = (User) event.getTargetEntity();
 			User killer = null;
 			for (Object object: event.getCause().all()) {
-				if(object instanceof User && ((User) object).getName().equals(killed.getName())) {
+				if(object instanceof User && !((User) object).getName().equals(killed.getName())) {
 					killer = (User) object;
 					break;
 				}
@@ -144,29 +142,31 @@ public class RBountyPlugin {
     public class SetBounty implements CommandExecutor {
         @Override
         public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
-        	if(args.<Integer>getOne("bounty").get() < 0)
+        	User user = args.<User>getOne("user").get();
+        	int bounty = args.<Integer>getOne("bounty").get();
+        	if(bounty < 0)
         	{
         		src.sendMessage(Text.builder("Bounty must be a non-negative integer").color(TextColors.BLUE).build());
         		return CommandResult.empty();
         	}
-        	if(data.setBounty(args.<User>getOne("user").get(), args.<Integer>getOne("bounty").get())) {
-            	broadcast(args.<User>getOne("user").get().getName() + "'s bounty is at " + data.getBounty(args.<User>getOne("user").get()) + "!");
-            	return CommandResult.success();
+        	
+        	if(data.setBounty(user, bounty)) {
+            	broadcast(user.getName() + "'s bounty has been set to " + economyService.getDefaultCurrency().getSymbol().toPlain() + data.getBounty(user) + "!");
             }
         	src.sendMessage(Text.builder("An error occured. Check console log for more information").color(TextColors.BLUE).build());
             return CommandResult.empty();
         }
     }
     
-    CommandSpec bountyGet = CommandSpec.builder()
+    CommandSpec bountyView = CommandSpec.builder()
     	    .description(Text.of("Get a player's current bounty"))
     	    .permission("rbounty.command.user")
             .arguments(
                     GenericArguments.optional(GenericArguments.onlyOne(GenericArguments.user(Text.of("user")))))
-    	    .executor(new GetBounty())
+    	    .executor(new ViewBounty())
     	    .build();
     
-    public class GetBounty implements CommandExecutor {
+    public class ViewBounty implements CommandExecutor {
         @Override
         public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
             User user = args.<User>getOne("user").orElse(null);
@@ -188,11 +188,62 @@ public class RBountyPlugin {
             return CommandResult.success();
         }
     }
+    
+    CommandSpec bountyAdd = CommandSpec.builder()
+    	    .description(Text.of("Add to a player's bounty"))
+    	    .permission("rbounty.command.user")
+            .arguments(
+            		GenericArguments.onlyOne(GenericArguments.user(Text.of("user"))),
+            		GenericArguments.onlyOne(GenericArguments.integer(Text.of("bounty"))))
+    	    .executor(new AddBounty())
+    	    .build();
+    
+    public class AddBounty implements CommandExecutor {
+        @Override
+        public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
+        	User user = args.<User>getOne("user").get();
+        	int bounty = args.<Integer>getOne("bounty").get();
+        	if(!(src instanceof Player))
+        	{
+        		src.sendMessage(Text.builder("Only a player may run this command.").color(TextColors.BLUE).build());
+        		return CommandResult.empty();
+        	}
+        	if(bounty <= 0)
+        	{
+        		src.sendMessage(Text.builder("Bounty must be a positive integer.").color(TextColors.BLUE).build());
+        		return CommandResult.empty();
+        	}
+        	UniqueAccount account = economyService.getOrCreateAccount(((Player) src).getUniqueId()).orElse(null);
+        	if(account == null)
+        	{
+        		src.sendMessage(Text.builder("An error occured. Check economy plugin for more information.").color(TextColors.BLUE).build());
+                return CommandResult.empty();
+        	}
+        	if(account.hasBalance(economyService.getDefaultCurrency()) && account.getBalance(economyService.getDefaultCurrency()).compareTo(BigDecimal.valueOf(bounty)) < 0) {
+        		src.sendMessage(Text.builder("You don't have enough money to bounty " + user.getName() + " for " + economyService.getDefaultCurrency().getSymbol().toPlain() + bounty + ".").color(TextColors.BLUE).build());
+                return CommandResult.empty();
+        	}
+        	
+        	if(data.setBounty(user, bounty + data.getBounty(user))) {
+            	account.withdraw(economyService.getDefaultCurrency(), BigDecimal.valueOf(bounty), Cause.builder().append(src).append(container).build(EventContext.builder().add(EventContextKeys.PLUGIN, container).build()));
+        		if(data.getBounty(user) == bounty) {
+        			broadcast("A bounty of " + economyService.getDefaultCurrency().getSymbol().toPlain() + bounty + " has been set on " + user.getName() + "!");
+        		}
+        		else {
+        			broadcast(user.getName() + "'s bounty has been increased by " + economyService.getDefaultCurrency().getSymbol().toPlain() + bounty + " and is now at " + economyService.getDefaultCurrency().getSymbol().toPlain() + data.getBounty(user) + "!");
+        		}
+            	return CommandResult.success();
+            }
+        	src.sendMessage(Text.builder("An error occured. Check console log for more information.").color(TextColors.BLUE).build());
+            return CommandResult.empty();
+        }
+    }
 	
     CommandSpec bountyMain = CommandSpec.builder()
     	    .description(Text.of("Master command for bounty"))
     	    .permission("rbounty.command.user")
     	    .child(bountySet, "set")
-    	    .child(bountyGet, "get")
+    	    .child(bountyView, "view")
+    	    .child(bountyAdd, "add")
     	    .build();
 }
