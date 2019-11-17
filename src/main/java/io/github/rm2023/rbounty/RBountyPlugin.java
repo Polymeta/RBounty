@@ -169,7 +169,8 @@ public class RBountyPlugin {
         	
         	if(data.setBounty(user, bounty)) {
             	broadcast(user.getName() + "'s bounty has been set to " + economyService.getDefaultCurrency().getSymbol().toPlain() + data.getBounty(user) + "!");
-            }
+            	return CommandResult.success();
+        	}
         	src.sendMessage(Text.builder("An error occured. Check console log for more information").color(TextColors.BLUE).build());
             return CommandResult.empty();
         }
