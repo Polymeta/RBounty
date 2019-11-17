@@ -30,6 +30,8 @@ public class RBountyPlugin {
 	      .manipulatorId("rbounty:bounty")
 	      .dataName("Bounty")
 	      .buildAndRegister(container);
+	  
+	  RBountyData data = new RBountyData();
 	}
 	
     @Listener
@@ -40,5 +42,5 @@ public class RBountyPlugin {
                 .name("Bounty")
                 .query(DataQuery.of("Bounty"))
                 .build();
-    }
+    }       
 }
