@@ -27,6 +27,9 @@ import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.service.economy.EconomyService;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
+import org.spongepowered.api.service.permission.PermissionDescription;
+import org.spongepowered.api.service.permission.PermissionDescription.Builder;
+import org.spongepowered.api.service.permission.PermissionService;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.text.format.TextStyles;
@@ -58,6 +61,7 @@ public class RBountyPlugin {
 	@Inject
 	private Logger logger;
 	
+	private PermissionService permissionService;
 	private EconomyService economyService;
 	
 	@Listener
@@ -96,6 +100,19 @@ public class RBountyPlugin {
 	        return;
 		}
 		economyService = economyOpt.get();
+		permissionService = Sponge.getServiceManager().provide(PermissionService.class).orElse(null);
+	    if(permissionService != null) {
+			Builder adminBuilder = permissionService.newDescriptionBuilder(container);
+		    adminBuilder.id("rbounty.command.admin")
+		           .description(Text.of("Allows the user to set bounties regardless of the bounty's current amount or the player's balance."))
+		           .assign(PermissionDescription.ROLE_ADMIN, true)
+		           .register();
+			Builder userBuilder = permissionService.newDescriptionBuilder(container);
+		    userBuilder.id("rbounty.command.user")
+		           .description(Text.of("Allows the user to view, add to, and claim bounties."))
+		           .assign(PermissionDescription.ROLE_USER, true)
+		           .register();
+	    }
 		data = new RBountyData(logger);
 		logger.info("RBounty loaded");
 	}
