@@ -20,6 +20,8 @@ public class RBountyData {
 	//Cache is constructed from playerdata on initialization
 	TreeMap<UUID, Integer> cache;
 	
+	UserStorageService userStorage;
+	
 	private Logger logger;
 	
 	public RBountyData(Logger l) {
@@ -28,7 +30,7 @@ public class RBountyData {
 	}
 	
 	protected void resetCache() {
-		UserStorageService userStorage = Sponge.getServiceManager().provide(UserStorageService.class).get();
+		userStorage = Sponge.getServiceManager().provide(UserStorageService.class).get();
 		Collection<GameProfile> userProfiles = userStorage.getAll();
 		
 		cache = new TreeMap<UUID, Integer>();
@@ -68,7 +70,12 @@ public class RBountyData {
 		{
 			return false;
 		}
-		DataTransactionResult result = user.offer(new BountyData(bounty));
+		DataTransactionResult result;
+		if(user.get(RBountyPlugin.BOUNTY).isPresent()) {
+			 result = user.offer(RBountyPlugin.BOUNTY, bounty);
+		} else {
+			result = user.offer(new BountyData(bounty));
+		}
 		if(result.isSuccessful())
 		{
 			cache.put(user.getUniqueId(), bounty);
@@ -76,5 +83,10 @@ public class RBountyData {
 		}
 		logger.error(result.toString());
 		return false;
+	}
+	
+	public boolean setBounty(UUID uuid, int bounty)
+	{
+		return setBounty(userStorage.get(uuid).orElseGet(null), bounty);
 	}
 }

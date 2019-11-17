@@ -112,14 +112,20 @@ public class RBountyPlugin {
 	{
 		if(!event.isCancelled() && event.getTargetEntity() instanceof User) {
 			User killed = (User) event.getTargetEntity();
-			Player killer = event.getCause().first(Player.class).orElse(null);
-			if(data.getBounty(killed) > 0 && killer != null && killer != killed) {
+			User killer = null;
+			for (Object object: event.getCause().all()) {
+				if(object instanceof User && ((User) object).getName().equals(killed.getName())) {
+					killer = (User) object;
+					break;
+				}
+			}
+			if(killer != null && !event.getContext().containsKey(EventContextKeys.FAKE_PLAYER) && data.getBounty(killed) > 0) {
 				UniqueAccount killerAccount = economyService.getOrCreateAccount(killer.getUniqueId()).orElse(null);
 				if(killerAccount != null)
 				{
 					killerAccount.deposit(economyService.getDefaultCurrency(), BigDecimal.valueOf(data.getBounty(killed)), 
-							Cause.builder().append(killed).append(killed).append(container).build(EventContext.builder().add(EventContextKeys.PLUGIN, container).build()));
-					data.setBounty(killed, 0);
+							Cause.builder().append(killed).append(killer).append(container).build(EventContext.builder().add(EventContextKeys.PLUGIN, container).build()));
+					data.setBounty(killed.getUniqueId(), 0);
 					broadcast(killer.getName() + " has claimed " + killed.getName() + "'s bounty!");
 				}
 			}
@@ -138,9 +144,9 @@ public class RBountyPlugin {
     public class SetBounty implements CommandExecutor {
         @Override
         public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
-        	if(args.<Integer>getOne("bounty").get() <= 0)
+        	if(args.<Integer>getOne("bounty").get() < 0)
         	{
-        		src.sendMessage(Text.builder("Bounty must be a positive integer").color(TextColors.BLUE).build());
+        		src.sendMessage(Text.builder("Bounty must be a non-negative integer").color(TextColors.BLUE).build());
         		return CommandResult.empty();
         	}
         	if(data.setBounty(args.<User>getOne("user").get(), args.<Integer>getOne("bounty").get())) {
