@@ -1,10 +1,12 @@
-package io.github.rm2023.rbounty;
+package io.github.rm2023.rbounty.data;
 
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.key.Key;
 import org.spongepowered.api.data.manipulator.immutable.common.AbstractImmutableSingleData;
 import org.spongepowered.api.data.value.BaseValue;
 import org.spongepowered.api.data.value.immutable.ImmutableValue;
+
+import io.github.rm2023.rbounty.RBountyPlugin;
 
 public class ImmBountyData extends AbstractImmutableSingleData<Integer, ImmBountyData, BountyData>{
 

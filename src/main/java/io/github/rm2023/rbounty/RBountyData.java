@@ -5,11 +5,12 @@ import java.util.TreeMap;
 import java.util.UUID;
 
 import org.spongepowered.api.Sponge;
+import org.spongepowered.api.data.DataTransactionResult;
 import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.profile.GameProfile;
 import org.spongepowered.api.service.user.UserStorageService;
 
-import com.google.inject.Inject;
+import io.github.rm2023.rbounty.data.BountyData;
 
 import org.slf4j.Logger;
 
@@ -55,16 +56,25 @@ public class RBountyData {
 	}
 	
 	public int getBounty(User user) {
-		return cache.get(user.getUniqueId());
+		if(cache.containsKey(user.getUniqueId()))
+		{
+			return cache.get(user.getUniqueId());
+		}
+		return 0;
 	}
 	
 	public boolean setBounty(User user, int bounty) {
-		if(user != null && user.offer(RBountyPlugin.BOUNTY, bounty).isSuccessful())
+		if(user == null)
+		{
+			return false;
+		}
+		DataTransactionResult result = user.offer(new BountyData(bounty));
+		if(result.isSuccessful())
 		{
 			cache.put(user.getUniqueId(), bounty);
 			return true;
 		}
-		logger.error(user.offer(RBountyPlugin.BOUNTY, bounty).toString());
+		logger.error(result.toString());
 		return false;
 	}
 }

@@ -1,4 +1,4 @@
-package io.github.rm2023.rbounty;
+package io.github.rm2023.rbounty.data;
 
 import java.util.Optional;
 
@@ -10,6 +10,8 @@ import org.spongepowered.api.data.manipulator.mutable.common.AbstractSingleData;
 import org.spongepowered.api.data.merge.MergeFunction;
 import org.spongepowered.api.data.value.BaseValue;
 import org.spongepowered.api.data.value.mutable.Value;
+
+import io.github.rm2023.rbounty.RBountyPlugin;
 
 public class BountyData extends AbstractSingleData<Integer, BountyData, ImmBountyData>{
 

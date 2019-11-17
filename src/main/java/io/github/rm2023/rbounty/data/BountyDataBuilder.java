@@ -1,4 +1,4 @@
-package io.github.rm2023.rbounty;
+package io.github.rm2023.rbounty.data;
 
 import java.util.Optional;
 

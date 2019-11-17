@@ -13,6 +13,7 @@ import org.spongepowered.api.data.DataRegistration;
 import org.spongepowered.api.data.key.Key;
 import org.spongepowered.api.data.value.mutable.Value;
 import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.game.GameRegistryEvent;
 import org.spongepowered.api.event.game.state.GameInitializationEvent;
@@ -24,6 +25,10 @@ import org.spongepowered.api.util.generator.dummy.DummyObjectProvider;
 import org.spongepowered.api.util.TypeTokens;
 
 import com.google.inject.Inject;
+
+import io.github.rm2023.rbounty.data.BountyData;
+import io.github.rm2023.rbounty.data.BountyDataBuilder;
+import io.github.rm2023.rbounty.data.ImmBountyData;
 
 import org.slf4j.Logger;
 
@@ -47,8 +52,8 @@ public class RBountyPlugin {
 	      .manipulatorId("rbounty:bounty")
 	      .dataName("Bounty")
 	      .buildAndRegister(container);
-	 
-	  Sponge.getCommandManager().register(container, myCommandSpec, "bounty");
+	  
+	  Sponge.getCommandManager().register(container, bountyMain, "bounty");
 	}
 	
     @Listener
@@ -67,23 +72,54 @@ public class RBountyPlugin {
 		data = new RBountyData(logger);
 		logger.info("RBounty loaded");
 	}
-    
-    CommandSpec myCommandSpec = CommandSpec.builder()
-    	    .description(Text.of("Sets player bounty"))
-    	    .permission("rbounty.command.set")
+	
+    CommandSpec bountySet = CommandSpec.builder()
+    	    .description(Text.of("Sets a player's bounty"))
+    	    .permission("rbounty.command.admin")
             .arguments(
-                    GenericArguments.onlyOne(GenericArguments.player(Text.of("player"))),
+                    GenericArguments.onlyOne(GenericArguments.user(Text.of("user"))),
                     GenericArguments.onlyOne(GenericArguments.integer(Text.of("bounty"))))
     	    .executor(new SetBounty())
     	    .build();
     
+    CommandSpec bountyGet = CommandSpec.builder()
+    	    .description(Text.of("Get a player's current bounty"))
+    	    .permission("rbounty.command.admin")
+            .arguments(
+                    GenericArguments.onlyOne(GenericArguments.user(Text.of("user"))))
+    	    .executor(new GetBounty())
+    	    .build();
+	
+    CommandSpec bountyMain = CommandSpec.builder()
+    	    .description(Text.of("Master command for bounty"))
+    	    .permission("rbounty.command.user")
+    	    .child(bountySet, "set")
+    	    .child(bountyGet, "get")
+    	    .build();
+   
+    
     public class SetBounty implements CommandExecutor {
         @Override
         public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
-            if(data.setBounty(args.<Player>getOne("player").get(), args.<Integer>getOne("bounty").get())) {
+            if(data.setBounty(args.<User>getOne("user").get(), args.<Integer>getOne("bounty").get())) {
+            	src.sendMessage(Text.of(args.<User>getOne("user").get().getName() + "'s bounty is now " + args.<Integer>getOne("bounty").get()));
             	return CommandResult.success();
             }
             return CommandResult.empty();
+        }
+    }
+    
+    public class GetBounty implements CommandExecutor {
+        @Override
+        public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
+            User user = args.<User>getOne("user").get();
+            int bounty = data.getBounty(user);
+            if(bounty > 0) {
+            	src.sendMessage(Text.of(user.getName() + "'s bounty is " + bounty));
+            	return CommandResult.success();
+            }
+            src.sendMessage(Text.of(user.getName() + " doesn't have a bounty."));
+            return CommandResult.success();
         }
     }
 }
