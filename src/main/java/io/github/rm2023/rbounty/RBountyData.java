@@ -9,19 +9,28 @@ import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.profile.GameProfile;
 import org.spongepowered.api.service.user.UserStorageService;
 
+import com.google.inject.Inject;
+
+import org.slf4j.Logger;
+
 public class RBountyData {
 	//Cache for RBountyData. All bounty gets use cache
 	//All bounty sets write both to cache and playerdata
 	//Cache is constructed from playerdata on initialization
 	TreeMap<UUID, Integer> cache;
 	
-	public RBountyData() {
+	private Logger logger;
+	
+	public RBountyData(Logger l) {
+		logger = l;
 		resetCache();
 	}
 	
 	protected void resetCache() {
 		UserStorageService userStorage = Sponge.getServiceManager().provide(UserStorageService.class).get();
 		Collection<GameProfile> userProfiles = userStorage.getAll();
+		
+		cache = new TreeMap<UUID, Integer>();
 		
 		for(GameProfile userProfile : userProfiles) {
 			User user = userStorage.get(userProfile).orElse(null);
@@ -32,7 +41,14 @@ public class RBountyData {
 			Integer playerBounty = user.get(RBountyPlugin.BOUNTY).orElse(null);
 			if(playerBounty == null)
 			{
-				continue;
+			    if(user.offer(new BountyData(0)).isSuccessful()) {
+			    	cache.put(user.getUniqueId(), 0);
+			    }
+			    else
+			    {
+			    	logger.error("Error while reading bounty for " + user.getName() + ".");
+			    }
+			    continue;
 			}
 			cache.put(user.getUniqueId(), playerBounty);
 		}
@@ -48,6 +64,7 @@ public class RBountyData {
 			cache.put(user.getUniqueId(), bounty);
 			return true;
 		}
+		logger.error(user.offer(RBountyPlugin.BOUNTY, bounty).toString());
 		return false;
 	}
 }

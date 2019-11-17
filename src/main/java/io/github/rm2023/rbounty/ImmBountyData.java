@@ -12,7 +12,7 @@ public class ImmBountyData extends AbstractImmutableSingleData<Integer, ImmBount
 	
 	public ImmBountyData(Integer value, Key<? extends BaseValue<Integer>> usedKey) {
 		super(value, usedKey);
-		immutableValue = Sponge.getRegistry().getValueFactory().createValue(RBountyPlugin.BOUNTY, value, value).asImmutable();
+		immutableValue = Sponge.getRegistry().getValueFactory().createValue(RBountyPlugin.BOUNTY, getValue()).asImmutable();
 	}
 	
 	public ImmBountyData(Integer value) {

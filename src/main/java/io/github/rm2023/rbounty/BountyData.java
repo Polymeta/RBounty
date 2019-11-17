@@ -2,6 +2,7 @@ package io.github.rm2023.rbounty;
 
 import java.util.Optional;
 
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.DataContainer;
 import org.spongepowered.api.data.DataHolder;
 import org.spongepowered.api.data.key.Key;
@@ -50,9 +51,9 @@ public class BountyData extends AbstractSingleData<Integer, BountyData, ImmBount
 	}
 	
 	@Override
-	protected Value<Integer> getValueGetter() {
-		return super.getValue(RBountyPlugin.BOUNTY).orElse(null);
-	}
+    protected Value<Integer> getValueGetter() {
+        return Sponge.getRegistry().getValueFactory().createValue(RBountyPlugin.BOUNTY, getValue());
+    }
 
 	@Override
 	public ImmBountyData asImmutable() {
