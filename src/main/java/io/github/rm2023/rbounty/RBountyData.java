@@ -1,7 +1,11 @@
 package io.github.rm2023.rbounty;
 
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.TreeMap;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.UUID;
 
 import org.spongepowered.api.Sponge;
@@ -18,22 +22,27 @@ public class RBountyData {
 	//Cache for RBountyData. All bounty gets use cache
 	//All bounty sets write both to cache and playerdata
 	//Cache is constructed from playerdata on initialization
-	TreeMap<UUID, Integer> cache;
+	protected HashMap <UUID, Integer> cache;
 	
-	UserStorageService userStorage;
+	protected UserStorageService userStorage;
 	
 	private Logger logger;
 	
-	public RBountyData(Logger l) {
-		logger = l;
+	public ArrayList<Map.Entry<UUID, Integer>> leaderboard;
+	
+	private boolean validLeaderboard = false;
+	
+	public RBountyData(Logger logger) {
+		userStorage = Sponge.getServiceManager().provide(UserStorageService.class).get();
+		this.logger = logger;
 		resetCache();
+		resetLeaderboard();
 	}
 	
 	protected void resetCache() {
-		userStorage = Sponge.getServiceManager().provide(UserStorageService.class).get();
 		Collection<GameProfile> userProfiles = userStorage.getAll();
 		
-		cache = new TreeMap<UUID, Integer>();
+		cache = new HashMap<UUID, Integer>();
 		
 		for(GameProfile userProfile : userProfiles) {
 			User user = userStorage.get(userProfile).orElse(null);
@@ -71,14 +80,11 @@ public class RBountyData {
 			return false;
 		}
 		DataTransactionResult result;
-		if(user.get(RBountyPlugin.BOUNTY).isPresent()) {
-			 result = user.offer(RBountyPlugin.BOUNTY, bounty);
-		} else {
-			result = user.offer(new BountyData(bounty));
-		}
+		result = user.offer(RBountyPlugin.BOUNTY, bounty);
 		if(result.isSuccessful())
 		{
 			cache.put(user.getUniqueId(), bounty);
+			validLeaderboard = false;
 			return true;
 		}
 		logger.error(result.toString());
@@ -88,5 +94,28 @@ public class RBountyData {
 	public boolean setBounty(UUID uuid, int bounty)
 	{
 		return setBounty(userStorage.get(uuid).orElseGet(null), bounty);
+	}
+	
+	private void resetLeaderboard()
+	{	
+		leaderboard = new ArrayList<Map.Entry<UUID, Integer>>();
+		leaderboard.addAll(cache.entrySet());
+		leaderboard.sort(new Comparator<Map.Entry<UUID, Integer> >() { 
+            public int compare(Map.Entry<UUID, Integer> o1,  
+                               Map.Entry<UUID, Integer> o2) 
+            { 
+                return (o2.getValue()).compareTo(o1.getValue()); 
+            } 
+        });
+		
+		validLeaderboard = true;
+	}
+	
+	public ArrayList<Entry<UUID, Integer>> getLeaderboard()
+	{
+		if(!validLeaderboard) {
+			resetLeaderboard();
+		}
+		return leaderboard;
 	}
 }
