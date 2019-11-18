@@ -104,27 +104,17 @@ public class RBountyPlugin {
     private ConfigurationLoader<CommentedConfigurationNode> configLoader = HoconConfigurationLoader.builder()
 	    .setPath(configFile).build();
     private CommentedConfigurationNode configNode;
-    public boolean broadcasts;
-
-    @Listener
-    public void onPreInit(GamePreInitializationEvent e) {
-	// Creates config directory, your could also create a method for this.
-	if (!Files.exists(configDir)) {
-	    try {
-		Files.createDirectories(configDir);
-	    } catch (IOException io) {
-		io.printStackTrace();
-	    }
-	}
-	setup();
-    }
+    public boolean broadcasts = true;
 
     // Creates config file not directory
     public void setup() {
 	if (!Files.exists(configFile)) {
 	    try {
+		logger.error("I GOT HERE");
 		Files.createFile(configFile);
-
+		configNode = configLoader.load();
+		configNode.setComment("Should the server broadcast bounty changes/claims?");
+		configNode.setValue(true);
 	    } catch (IOException e) {
 		e.printStackTrace();
 	    }
@@ -137,6 +127,7 @@ public class RBountyPlugin {
     public void load() {
 	try {
 	    configNode = configLoader.load();
+	    broadcasts = configNode.getBoolean();
 	} catch (IOException e) {
 	    e.printStackTrace();
 	}
@@ -147,6 +138,16 @@ public class RBountyPlugin {
 	DataRegistration.builder().dataClass(BountyData.class).immutableClass(ImmBountyData.class)
 		.builder(new BountyDataBuilder()).manipulatorId("rbounty:bounty").dataName("Bounty")
 		.buildAndRegister(container);
+
+	// Creates config directory, your could also create a method for this.
+	if (!Files.exists(configDir)) {
+	    try {
+		Files.createDirectories(configDir);
+	    } catch (IOException io) {
+		io.printStackTrace();
+	    }
+	}
+	setup();
 
 	Sponge.getCommandManager().register(container, bountyMain, "bounty");
     }
