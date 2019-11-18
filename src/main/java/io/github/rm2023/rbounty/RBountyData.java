@@ -80,7 +80,11 @@ public class RBountyData {
 			return false;
 		}
 		DataTransactionResult result;
-		result = user.offer(RBountyPlugin.BOUNTY, bounty);
+		if(user.get(RBountyPlugin.BOUNTY).isPresent()) {
+			 result = user.offer(RBountyPlugin.BOUNTY, bounty);
+		} else {
+			result = user.offer(new BountyData(bounty));
+		}
 		if(result.isSuccessful())
 		{
 			cache.put(user.getUniqueId(), bounty);

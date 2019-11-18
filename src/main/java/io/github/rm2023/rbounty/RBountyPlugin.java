@@ -173,7 +173,7 @@ public class RBountyPlugin {
         	}
         	
         	if(data.setBounty(user, bounty)) {
-            	broadcast(user.getName() + "'s bounty has been set to " + economyService.getDefaultCurrency().format(BigDecimal.valueOf(data.getBounty(user))) + "!");
+            	broadcast(user.getName() + "'s bounty has been set to " + economyService.getDefaultCurrency().format(BigDecimal.valueOf(data.getBounty(user))).toPlain() + "!");
             	return CommandResult.success();
         	}
         	src.sendMessage(Text.builder("An error occured. Check console log for more information").color(TextColors.BLUE).build());
@@ -243,17 +243,17 @@ public class RBountyPlugin {
                 return CommandResult.empty();
         	}
         	if(account.hasBalance(economyService.getDefaultCurrency()) && account.getBalance(economyService.getDefaultCurrency()).compareTo(BigDecimal.valueOf(bounty)) < 0) {
-        		src.sendMessage(Text.builder("You don't have enough money to bounty " + user.getName() + " for " + economyService.getDefaultCurrency().format(BigDecimal.valueOf(bounty)) + ".").color(TextColors.BLUE).build());
+        		src.sendMessage(Text.builder("You don't have enough money to bounty " + user.getName() + " for " + economyService.getDefaultCurrency().format(BigDecimal.valueOf(bounty)).toPlain() + ".").color(TextColors.BLUE).build());
                 return CommandResult.empty();
         	}
         	
         	if(data.setBounty(user, bounty + data.getBounty(user))) {
             	account.withdraw(economyService.getDefaultCurrency(), BigDecimal.valueOf(bounty), Cause.builder().append(src).append(container).build(EventContext.builder().add(EventContextKeys.PLUGIN, container).build()));
         		if(data.getBounty(user) == bounty) {
-        			broadcast("A bounty of " + economyService.getDefaultCurrency().format(BigDecimal.valueOf(bounty)) + " has been set on " + user.getName() + "!");
+        			broadcast("A bounty of " + economyService.getDefaultCurrency().format(BigDecimal.valueOf(bounty)).toPlain() + " has been set on " + user.getName() + "!");
         		}
         		else {
-        			broadcast(user.getName() + "'s bounty has been increased by " + economyService.getDefaultCurrency().format(BigDecimal.valueOf(bounty)) + " and is now at " + economyService.getDefaultCurrency().format(BigDecimal.valueOf(data.getBounty(user))) + "!");
+        			broadcast(user.getName() + "'s bounty has been increased by " + economyService.getDefaultCurrency().format(BigDecimal.valueOf(bounty)).toPlain() + " and is now at " + economyService.getDefaultCurrency().format(BigDecimal.valueOf(data.getBounty(user))).toPlain() + "!");
         		}
             	return CommandResult.success();
             }
@@ -302,22 +302,38 @@ public class RBountyPlugin {
     	    .child(bountySet, "set")
     	    .child(bountyView, "view")
     	    .child(bountyAdd, "add")
-    	    .child(bountyTop, "top")
-    	    .child(bountyTopOnline, "topOnline")
+    	    .child(bountyTop, "top", "leaderboard")
+    	    .child(bountyTopOnline, "topOnline", "leaderboardOnline")
     	    .build();
     
-    public Text parseLeaderboard(int start, int end, boolean online)
-    {
+    public Text parseLeaderboard(int start, int end, boolean online) {
     	Text fail = Text.builder("No bounties were found in that range!").color(TextColors.BLUE).build();
     	ArrayList<Entry<UUID, Integer>> lb = data.getLeaderboard();
     	if(lb.size() <= start || start < 0 || start >= end || lb.get(start).getValue() == 0) {
     		return fail;
     	}
     	Text.Builder builder = Text.builder();
-    	
     	int val;
     	User user;
     	int skip = 0;
+    	
+    	if(online) {
+    		int i = 0;
+    		while(start > -1) {
+    			start -= 1;
+    			user = userStorageService.get(lb.get(i).getKey()).get();
+    			val = lb.get(i).getValue();
+    			while(!user.isOnline()) {
+            		i += 1;
+            		if(i >= lb.size() || val == 0) {
+            			return fail;
+            		}
+    			}
+    		}
+    		skip = i;
+    		start = i;
+    	}
+    	
     	builder.append(Text.of("\n---------------------LEADERBOARD---------------------\n"));
     	for(int i = start; i < end && i < lb.size() && lb.get(i).getValue() > 0; i++) {
     		val = lb.get(i).getValue();
@@ -329,7 +345,7 @@ public class RBountyPlugin {
     		}
     		builder.append(Text.of((i + 1 - skip) + ". " + user.getName() + ", " + (economyService.getDefaultCurrency().format(BigDecimal.valueOf(val)).toPlain()) + "\n"));
     	}
-    	builder.append(Text.of("-----------------------------------------------------\n"));
+    	builder.append(Text.of("-----------------------------------------------------"));
     	builder.color(TextColors.BLUE);
     	return builder.build();
     }
