@@ -51,7 +51,7 @@ import java.util.Map.Entry;
 
 import org.slf4j.Logger;
 
-@Plugin(id = "rbounty", name = "RBounty", version = "1.0.0", description = "A sponge plugin to place bounties on players")
+@Plugin(id = "rbounty", name = "RBounty", version = "1.0.0", description = "A plugin allowing the placing and claiming of player bounties.")
 public class RBountyPlugin {
 	public static Key<Value<Integer>> BOUNTY = DummyObjectProvider.createExtendedFor(Key.class, "BOUNTY");
 	RBountyData data = null;
