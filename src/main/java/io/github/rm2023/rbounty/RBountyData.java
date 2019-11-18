@@ -55,7 +55,9 @@ public class RBountyData {
 		resetCache();
 		resetLeaderboard();
 	}
-	
+	/**
+	 * Sets up the cache for RBountyData by iterating through all users in userStorage and storing their bounties in the cache.
+	 */
 	protected void resetCache() {
 		Collection<GameProfile> userProfiles = userStorage.getAll();
 		
@@ -117,6 +119,9 @@ public class RBountyData {
 		return setBounty(userStorage.get(uuid).orElseGet(null), bounty);
 	}
 	
+	/**
+	 * Converts the cache into a list and sorts it in descending order and sets leaderboard to that.
+	 */
 	private void resetLeaderboard()
 	{	
 		leaderboard = new ArrayList<Map.Entry<UUID, Integer>>();

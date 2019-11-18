@@ -147,6 +147,7 @@ public class RBountyPlugin {
 	@Listener 
 	public void onEntityDeath(DestructEntityEvent.Death event)
 	{
+		//If an entity is killed, that entity happens to be a player w/ a bounty, and the entitydeath cause has another player in it with a valid currency account, award the killer the bounty.
 		if(!event.isCancelled() && event.getTargetEntity() instanceof User) {
 			User killed = (User) event.getTargetEntity();
 			User killer = null;
@@ -322,7 +323,13 @@ public class RBountyPlugin {
     	    .child(bountyTop, "top", "leaderboard")
     	    .child(bountyTopOnline, "topOnline", "leaderboardOnline")
     	    .build();
-    
+    /**
+     * Parses the bounty leaderboard and returns a chat friendly representation of it.
+     * @param start the first position to show on the leaderboard.
+     * @param end the last position to show on the leaderboard
+     * @param online Whether to only look for online players
+     * @return a textual representation of the leaderboard
+     */
     public Text parseLeaderboard(int start, int end, boolean online) {
     	Text fail = Text.builder("No bounties were found in that range!").color(TextColors.BLUE).build();
     	ArrayList<Entry<UUID, Integer>> lb = data.getLeaderboard();
