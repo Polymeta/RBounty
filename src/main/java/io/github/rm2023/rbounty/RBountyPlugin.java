@@ -39,8 +39,8 @@ import org.spongepowered.api.event.cause.EventContext;
 import org.spongepowered.api.event.cause.EventContextKeys;
 import org.spongepowered.api.event.entity.DestructEntityEvent;
 import org.spongepowered.api.event.game.GameRegistryEvent;
+import org.spongepowered.api.event.game.GameReloadEvent;
 import org.spongepowered.api.event.game.state.GameInitializationEvent;
-import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
 import org.spongepowered.api.event.game.state.GameStartedServerEvent;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.plugin.PluginContainer;
@@ -69,7 +69,6 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Optional;
 import java.util.UUID;
@@ -99,23 +98,23 @@ public class RBountyPlugin {
     @ConfigDir(sharedRoot = false)
     private Path configDir;
 
-    private Path configFile = Paths.get(configDir + "/config.conf");
+    private Path configFile;
 
-    private ConfigurationLoader<CommentedConfigurationNode> configLoader = HoconConfigurationLoader.builder()
-	    .setPath(configFile).build();
+    private ConfigurationLoader<CommentedConfigurationNode> configLoader;
     private CommentedConfigurationNode configNode;
     public boolean broadcasts = true;
 
-    // Creates config file not directory
+    // Creates config file
     public void setup() {
 	if (!Files.exists(configFile)) {
 	    try {
-		logger.error("I GOT HERE");
 		Files.createFile(configFile);
 		configNode = configLoader.load();
-		configNode.setComment("Should the server broadcast bounty changes/claims?");
-		configNode.setValue(true);
-	    } catch (IOException e) {
+		CommentedConfigurationNode broadcastNode = configNode.getNode("allowBroadcasts");
+		broadcastNode.setComment("Should the server broadcast bounty changes/claims?");
+		broadcastNode.setValue(true);
+		configLoader.save(configNode);
+	    } catch (Exception e) {
 		e.printStackTrace();
 	    }
 	} else {
@@ -127,7 +126,7 @@ public class RBountyPlugin {
     public void load() {
 	try {
 	    configNode = configLoader.load();
-	    broadcasts = configNode.getBoolean();
+	    broadcasts = configNode.getNode("allowBroadcasts").getBoolean();
 	} catch (IOException e) {
 	    e.printStackTrace();
 	}
@@ -147,9 +146,18 @@ public class RBountyPlugin {
 		io.printStackTrace();
 	    }
 	}
+	configFile = configDir.resolve("rbounty.conf");
+	configLoader = HoconConfigurationLoader.builder().setPath(configFile).build();
 	setup();
 
 	Sponge.getCommandManager().register(container, bountyMain, "bounty");
+    }
+    
+    @Listener
+    public void onReload(GameReloadEvent event) {
+	configFile = configDir.resolve("rbounty.conf");
+	configLoader = HoconConfigurationLoader.builder().setPath(configFile).build();
+	setup();
     }
 
     @Listener
@@ -187,11 +195,10 @@ public class RBountyPlugin {
     }
 
     private void broadcast(String msg, CommandSource src) {
-	Text toSend = Text.builder(msg).color(TextColors.BLUE).style(TextStyles.BOLD).build();
 	if (broadcasts) {
-	    Sponge.getServer().getBroadcastChannel().send(toSend);
+	    Sponge.getServer().getBroadcastChannel().send(Text.builder(msg).color(TextColors.BLUE).style(TextStyles.BOLD).build());
 	} else if (src != null) {
-	    src.sendMessage(toSend);
+	    src.sendMessage(Text.builder(msg).color(TextColors.BLUE).build());
 	}
     }
 
@@ -390,13 +397,16 @@ public class RBountyPlugin {
 	int skip = 0;
 
 	if (online) {
-	    int i = 0;
+	    int i = -1;
 	    while (start > -1) {
 		start -= 1;
+		i += 1;
 		user = userStorageService.get(lb.get(i).getKey()).get();
 		val = lb.get(i).getValue();
 		while (!user.isOnline()) {
 		    i += 1;
+		    user = userStorageService.get(lb.get(i).getKey()).get();
+		    val = lb.get(i).getValue();
 		    if (i >= lb.size() || val == 0) {
 			return fail;
 		    }
