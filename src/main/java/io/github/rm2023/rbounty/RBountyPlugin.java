@@ -17,6 +17,16 @@
 
 package io.github.rm2023.rbounty;
 
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Map.Entry;
+import java.util.Optional;
+import java.util.UUID;
+
+import org.slf4j.Logger;
 import org.spongepowered.api.Game;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandException;
@@ -38,6 +48,7 @@ import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.event.cause.EventContext;
 import org.spongepowered.api.event.cause.EventContextKeys;
 import org.spongepowered.api.event.entity.DestructEntityEvent;
+import org.spongepowered.api.event.entity.living.humanoid.player.RespawnPlayerEvent;
 import org.spongepowered.api.event.game.GameRegistryEvent;
 import org.spongepowered.api.event.game.GameReloadEvent;
 import org.spongepowered.api.event.game.state.GameInitializationEvent;
@@ -48,13 +59,13 @@ import org.spongepowered.api.service.economy.EconomyService;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
 import org.spongepowered.api.service.permission.PermissionDescription;
 import org.spongepowered.api.service.permission.PermissionDescription.Builder;
-import org.spongepowered.api.service.user.UserStorageService;
 import org.spongepowered.api.service.permission.PermissionService;
+import org.spongepowered.api.service.user.UserStorageService;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.text.format.TextStyles;
-import org.spongepowered.api.util.generator.dummy.DummyObjectProvider;
 import org.spongepowered.api.util.TypeTokens;
+import org.spongepowered.api.util.generator.dummy.DummyObjectProvider;
 
 import com.google.inject.Inject;
 
@@ -65,18 +76,7 @@ import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.Map.Entry;
-
-import org.slf4j.Logger;
-
-@Plugin(id = "rbounty", name = "RBounty", version = "1.0.0", description = "A plugin allowing the placing and claiming of player bounties.")
+@Plugin(id = "rbounty", name = "RBounty", version = "1.0.1", description = "A plugin allowing the placing and claiming of player bounties.")
 public class RBountyPlugin {
     public static Key<Value<Integer>> BOUNTY = DummyObjectProvider.createExtendedFor(Key.class, "BOUNTY");
     RBountyData data = null;
@@ -431,5 +431,10 @@ public class RBountyPlugin {
 	builder.append(Text.of("-----------------------------------------------------"));
 	builder.color(TextColors.BLUE);
 	return builder.build();
+    }
+
+    @Listener
+    public void onRespawn(RespawnPlayerEvent event) {
+        event.getTargetEntity().offer(RBountyPlugin.BOUNTY, event.getOriginalPlayer().get(RBountyPlugin.BOUNTY).get());
     }
 }
