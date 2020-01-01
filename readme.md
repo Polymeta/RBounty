@@ -1,6 +1,6 @@
 # RBounty
 
-A simple bounty plugin for Sponge! Works with  any economy that implements Sponge's EconomyService. Tested with the current reccomended 1.12.2 versions of spongeforge, totaleconomy, and forge as of the 11-18-19 (spongeforge-1.12.2-2838-7.1.7.jar, TotalEconomy-1.8.1.jar, and forge-1.12.2-14.23.5.2847-universal.jar)
+A simple bounty plugin for Sponge! Works with  any economy that implements Sponge's EconomyService. Tested with the current reccomended 1.12.2 versions of spongeforge, totaleconomy, and forge as of the 1-1-20 (spongeforge-1.12.2-2838-7.1.8.jar, TotalEconomy-1.8.1.jar, and forge-1.12.2-14.23.5.2847-universal.jar)
 
 
 **MECHANICS:**
