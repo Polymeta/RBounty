@@ -2,6 +2,7 @@ package io.github.rm2023.rbounty.commands;
 
 import io.github.rm2023.rbounty.RBountyPlugin;
 import io.github.rm2023.rbounty.Utility.Helper;
+import io.github.rm2023.rbounty.config.GeneralConfig;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
@@ -69,16 +70,15 @@ public class AddBounty implements CommandExecutor
 
             if (instance.data.getBounty(user) == bounty)
             {
-                Helper.broadcast("A bounty of "
-                        + instance.getEconomyService().getDefaultCurrency().format(BigDecimal.valueOf(bounty)).toPlain()
-                        + " has been set on " + user.getName() + "!", src);
+                Helper.broadcast(GeneralConfig.bountySetMessage
+                        .replace("%bounty%", instance.getEconomyService().getDefaultCurrency().format(BigDecimal.valueOf(instance.data.getBounty(user))).toPlain())
+                        .replace("&player&", user.getName()), src);
             }
             else {
-                Helper.broadcast(user.getName() + "'s bounty has been increased by "
-                        + instance.getEconomyService().getDefaultCurrency().format(BigDecimal.valueOf(bounty)).toPlain()
-                        + " and is now at " + instance.getEconomyService().getDefaultCurrency()
-                        .format(BigDecimal.valueOf(instance.data.getBounty(user))).toPlain()
-                        + "!", src);
+                Helper.broadcast(GeneralConfig.bountyIncreasedMessage
+                        .replace("%difference%", Integer.toString(bounty))
+                        .replace("%bounty%", instance.getEconomyService().getDefaultCurrency().format(BigDecimal.valueOf(instance.data.getBounty(user))).toPlain())
+                        .replace("&player&", user.getName()), src);
             }
             return CommandResult.success();
         }

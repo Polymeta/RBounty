@@ -8,6 +8,7 @@ import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.text.format.TextStyles;
+import org.spongepowered.api.text.serializer.TextSerializers;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -20,11 +21,11 @@ public class Helper
     {
         if (GeneralConfig.doBroadcasts)
         {
-            Sponge.getServer().getBroadcastChannel().send(Text.builder(msg).color(TextColors.BLUE).style(TextStyles.BOLD).build());
+            Sponge.getServer().getBroadcastChannel().send(TextSerializers.FORMATTING_CODE.deserialize(msg));
         }
         else if (src != null)
         {
-            src.sendMessage(Text.builder(msg).color(TextColors.BLUE).build());
+            src.sendMessage(TextSerializers.FORMATTING_CODE.deserialize(msg));
         }
     }
 

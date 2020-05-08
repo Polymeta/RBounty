@@ -2,16 +2,20 @@ package io.github.rm2023.rbounty.listener;
 
 import io.github.rm2023.rbounty.RBountyPlugin;
 import io.github.rm2023.rbounty.Utility.Helper;
+import io.github.rm2023.rbounty.config.GeneralConfig;
+import org.spongepowered.api.entity.EntityTypes;
 import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.event.cause.EventContext;
 import org.spongepowered.api.event.cause.EventContextKeys;
+import org.spongepowered.api.event.cause.entity.damage.source.EntityDamageSource;
 import org.spongepowered.api.event.entity.DestructEntityEvent;
 import org.spongepowered.api.event.entity.living.humanoid.player.RespawnPlayerEvent;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
 
 import java.math.BigDecimal;
+import java.util.Optional;
 
 public class EntityDeath
 {
@@ -32,17 +36,19 @@ public class EntityDeath
         {
             User killed = (User) event.getTargetEntity();
             User killer = null;
-            for (Object object : event.getCause().all())
+            Optional<EntityDamageSource> damageOpt= event.getCause().first(EntityDamageSource.class);
+            if(damageOpt.isPresent())
             {
-                if (object instanceof User && !((User) object).getName().equals(killed.getName()))
+                EntityDamageSource damageDone = damageOpt.get();
+                if(damageDone.getSource().getType().equals(EntityTypes.PLAYER))
                 {
-                    killer = (User) object;
-                    break;
+                    killer = (User) damageDone.getSource();
                 }
             }
-            if (killer != null
-                    && !event.getContext().containsKey(EventContextKeys.FAKE_PLAYER)
-                    && instace.data.getBounty(killed) > 0)
+
+            if (killer != null &&
+                    !event.getContext().containsKey(EventContextKeys.FAKE_PLAYER) &&
+                    instace.data.getBounty(killed) > 0)
             {
                 UniqueAccount killerAccount = instace.getEconomyService().getOrCreateAccount(killer.getUniqueId()).orElse(null);
                 if (killerAccount != null)
@@ -56,8 +62,11 @@ public class EntityDeath
                                     .build(EventContext.builder()
                                             .add(EventContextKeys.PLUGIN, instace.getContainer())
                                             .build()));
+                    Helper.broadcast(GeneralConfig.claimMessage
+                            .replace("%killer%", killer.getName())
+                            .replace("%victim%", killed.getName())
+                            .replace("%bounty%", instace.getEconomyService().getDefaultCurrency().format(BigDecimal.valueOf(instace.data.getBounty(killed))).toPlain()), null);
                     instace.data.setBounty(killed, 0);
-                    Helper.broadcast(killer.getName() + " has claimed " + killed.getName() + "'s bounty!", null);
                 }
             }
         }
