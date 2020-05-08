@@ -7,14 +7,14 @@ import ninja.leaping.configurate.objectmapping.serialize.ConfigSerializable;
 public class GeneralConfig
 {
     @Setting(comment = "Whether or not the plugin should broadcast bounty claims and changes.")
-    public static boolean doBroadcasts = true;
+    public boolean doBroadcasts = true;
 
     @Setting(comment = "The message that gets displayed upon bounty claim. Placeholders are  %killer%, %victim% and %bounty%")
-    public static String claimMessage = "%killer% has claimed %victim%'s bounty of %bounty%!";
+    public String claimMessage = "%killer% has claimed %victim%'s bounty of %bounty%!";
 
     @Setting(comment = "The message that gets displayed when a bounty gets set on a player. Placeholders are %player% and %bounty%")
-    public static String bountySetMessage = "A bounty of %bounty% has been set on %player%!";
+    public String bountySetMessage = "A bounty of %bounty% has been set on %player%!";
 
     @Setting(comment = "The message that gets displayed when a bounty gets increased on a player. Placeholders are %player%, %difference% and %bounty%")
-    public static String bountyIncreasedMessage = "%player%'s bounty has been increased by %difference% and is now at %bounty%!";
+    public String bountyIncreasedMessage = "%player%'s bounty has been increased by %difference% and is now at %bounty%!";
 }

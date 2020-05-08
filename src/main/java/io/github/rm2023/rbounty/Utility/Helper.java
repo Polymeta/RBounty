@@ -19,7 +19,7 @@ public class Helper
 {
     public static void broadcast(String msg, CommandSource src)
     {
-        if (GeneralConfig.doBroadcasts)
+        if (RBountyPlugin.getInstance().getConfig().doBroadcasts)
         {
             Sponge.getServer().getBroadcastChannel().send(TextSerializers.FORMATTING_CODE.deserialize(msg));
         }

@@ -2,7 +2,6 @@ package io.github.rm2023.rbounty.listener;
 
 import io.github.rm2023.rbounty.RBountyPlugin;
 import io.github.rm2023.rbounty.Utility.Helper;
-import io.github.rm2023.rbounty.config.GeneralConfig;
 import org.spongepowered.api.entity.EntityTypes;
 import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.event.Listener;
@@ -62,7 +61,7 @@ public class EntityDeath
                                     .build(EventContext.builder()
                                             .add(EventContextKeys.PLUGIN, instace.getContainer())
                                             .build()));
-                    Helper.broadcast(GeneralConfig.claimMessage
+                    Helper.broadcast(instace.getConfig().claimMessage
                             .replace("%killer%", killer.getName())
                             .replace("%victim%", killed.getName())
                             .replace("%bounty%", instace.getEconomyService().getDefaultCurrency().format(BigDecimal.valueOf(instace.data.getBounty(killed))).toPlain()), null);

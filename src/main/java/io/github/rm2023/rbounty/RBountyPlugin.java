@@ -33,6 +33,7 @@ import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.args.GenericArguments;
 import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.config.ConfigDir;
+import org.spongepowered.api.config.DefaultConfig;
 import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.data.DataRegistration;
 import org.spongepowered.api.data.key.Key;
@@ -58,7 +59,7 @@ import java.util.Optional;
 
 @Plugin(id = "rbounty",
 		name = "RBounty",
-		version = "2.0.0",
+		version = "2.0.2",
 		description = "A plugin allowing the placing and claiming of player bounties.")
 public class RBountyPlugin
 {
@@ -92,12 +93,16 @@ public class RBountyPlugin
 	}
 
     @Inject
-    @ConfigDir(sharedRoot = false)
+    @DefaultConfig(sharedRoot = false)
     private ConfigurationLoader<CommentedConfigurationNode> configLoader;
-    private CommentedConfigurationNode configNode;
-    private GeneralConfig config;
 
-    @Listener
+	private CommentedConfigurationNode configNode;
+    private GeneralConfig config;
+	public GeneralConfig getConfig() {
+		return config;
+	}
+
+	@Listener
     public void onInit(GameInitializationEvent event)
 	{
 		instance = this;

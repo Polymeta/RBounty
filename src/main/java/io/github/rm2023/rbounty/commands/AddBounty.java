@@ -70,12 +70,12 @@ public class AddBounty implements CommandExecutor
 
             if (instance.data.getBounty(user) == bounty)
             {
-                Helper.broadcast(GeneralConfig.bountySetMessage
+                Helper.broadcast(instance.getConfig().bountySetMessage
                         .replace("%bounty%", instance.getEconomyService().getDefaultCurrency().format(BigDecimal.valueOf(instance.data.getBounty(user))).toPlain())
                         .replace("&player&", user.getName()), src);
             }
             else {
-                Helper.broadcast(GeneralConfig.bountyIncreasedMessage
+                Helper.broadcast(instance.getConfig().bountyIncreasedMessage
                         .replace("%difference%", Integer.toString(bounty))
                         .replace("%bounty%", instance.getEconomyService().getDefaultCurrency().format(BigDecimal.valueOf(instance.data.getBounty(user))).toPlain())
                         .replace("&player&", user.getName()), src);
