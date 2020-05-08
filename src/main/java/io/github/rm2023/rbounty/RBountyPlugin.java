@@ -58,7 +58,7 @@ import java.util.Optional;
 
 @Plugin(id = "rbounty",
 		name = "RBounty",
-		version = "1.0.1",
+		version = "2.0.0",
 		description = "A plugin allowing the placing and claiming of player bounties.")
 public class RBountyPlugin
 {
