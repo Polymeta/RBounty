@@ -1,6 +1,7 @@
 package io.github.rm2023.rbounty.listener;
 
 import io.github.rm2023.rbounty.RBountyPlugin;
+import io.github.rm2023.rbounty.Utility.Helper;
 import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.cause.Cause;
@@ -56,7 +57,7 @@ public class EntityDeath
                                             .add(EventContextKeys.PLUGIN, instace.container)
                                             .build()));
                     instace.data.setBounty(killed, 0);
-                    instace.broadcast(killer.getName() + " has claimed " + killed.getName() + "'s bounty!", null);
+                    Helper.broadcast(killer.getName() + " has claimed " + killed.getName() + "'s bounty!", null);
                 }
             }
         }

@@ -1,6 +1,7 @@
 package io.github.rm2023.rbounty.commands;
 
 import io.github.rm2023.rbounty.RBountyPlugin;
+import io.github.rm2023.rbounty.Utility.Helper;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
@@ -35,7 +36,7 @@ public class SetBounty implements CommandExecutor
 
         if (instance.data.setBounty(user, bounty))
         {
-            instance.broadcast(user.getName() + "'s bounty has been set to "
+            Helper.broadcast(user.getName() + "'s bounty has been set to "
                     + instance.economyService.getDefaultCurrency().format(BigDecimal.valueOf(instance.data.getBounty(user))).toPlain()
                     + "!", src);
             return CommandResult.success();

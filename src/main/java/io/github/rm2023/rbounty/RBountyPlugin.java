@@ -26,13 +26,10 @@ import io.github.rm2023.rbounty.data.BountyDataBuilder;
 import io.github.rm2023.rbounty.data.ImmBountyData;
 import io.github.rm2023.rbounty.listener.EntityDeath;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
-import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 import org.slf4j.Logger;
-import org.spongepowered.api.Game;
 import org.spongepowered.api.Sponge;
-import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.GenericArguments;
 import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.config.ConfigDir;
@@ -40,13 +37,7 @@ import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.data.DataRegistration;
 import org.spongepowered.api.data.key.Key;
 import org.spongepowered.api.data.value.mutable.Value;
-import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.event.Listener;
-import org.spongepowered.api.event.cause.Cause;
-import org.spongepowered.api.event.cause.EventContext;
-import org.spongepowered.api.event.cause.EventContextKeys;
-import org.spongepowered.api.event.entity.DestructEntityEvent;
-import org.spongepowered.api.event.entity.living.humanoid.player.RespawnPlayerEvent;
 import org.spongepowered.api.event.game.GameRegistryEvent;
 import org.spongepowered.api.event.game.GameReloadEvent;
 import org.spongepowered.api.event.game.state.GameInitializationEvent;
@@ -54,36 +45,32 @@ import org.spongepowered.api.event.game.state.GameStartedServerEvent;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.service.economy.EconomyService;
-import org.spongepowered.api.service.economy.account.UniqueAccount;
 import org.spongepowered.api.service.permission.PermissionDescription;
 import org.spongepowered.api.service.permission.PermissionDescription.Builder;
 import org.spongepowered.api.service.permission.PermissionService;
 import org.spongepowered.api.service.user.UserStorageService;
 import org.spongepowered.api.text.Text;
-import org.spongepowered.api.text.format.TextColors;
-import org.spongepowered.api.text.format.TextStyles;
 import org.spongepowered.api.util.TypeTokens;
 import org.spongepowered.api.util.generator.dummy.DummyObjectProvider;
 
 import java.io.IOException;
-import java.math.BigDecimal;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Map.Entry;
 import java.util.Optional;
-import java.util.UUID;
 
 @Plugin(id = "rbounty",
 		name = "RBounty",
 		version = "1.0.1",
 		description = "A plugin allowing the placing and claiming of player bounties.")
-public class RBountyPlugin {
-    public static Key<Value<Integer>> BOUNTY = DummyObjectProvider.createExtendedFor(Key.class, "BOUNTY");
-    public RBountyData data = null;
+public class RBountyPlugin
+{
+	private static RBountyPlugin instance;
 
-    @Inject
-    private Game game;
+	public static RBountyPlugin getInstance()
+	{
+		return instance;
+	}
+
+	public static Key<Value<Integer>> BOUNTY = DummyObjectProvider.createExtendedFor(Key.class, "BOUNTY");
+    public RBountyData data = null;
 
     @Inject
     public PluginContainer container;
@@ -91,9 +78,8 @@ public class RBountyPlugin {
     @Inject
     private Logger logger;
 
-    private PermissionService permissionService;
-    public EconomyService economyService;
-    private UserStorageService userStorageService;
+	public EconomyService economyService;
+    public UserStorageService userStorageService;
 
     @Inject
     @ConfigDir(sharedRoot = false)
@@ -104,6 +90,7 @@ public class RBountyPlugin {
     @Listener
     public void onInit(GameInitializationEvent event)
 	{
+		instance = this;
 		DataRegistration.builder()
 				.dataClass(BountyData.class)
 				.immutableClass(ImmBountyData.class)
@@ -156,29 +143,29 @@ public class RBountyPlugin {
 		if (!economyOpt.isPresent())
 		{
 		    logger.error("RBounty REQUIRES a plugin with an economy API in order to function.");
-		    game.getEventManager().unregisterPluginListeners(this);
-		    game.getCommandManager().getOwnedBy(this).forEach(game.getCommandManager()::removeMapping);
+		    Sponge.getEventManager().unregisterPluginListeners(this);
+		    Sponge.getCommandManager().getOwnedBy(this).forEach(Sponge.getCommandManager()::removeMapping);
 		    logger.info("RBounty is now disabled.");
 		    return;
 		}
-	economyService = economyOpt.get();
-	permissionService = Sponge.getServiceManager().provide(PermissionService.class).orElse(null);
-	if (permissionService != null)
-	{
-	    Builder adminBuilder = permissionService.newDescriptionBuilder(container);
-	    adminBuilder.id("rbounty.command.admin")
-				.description(Text.of("Allows the user to set bounties regardless of the bounty's current amount or the player's balance."))
-		    	.assign(PermissionDescription.ROLE_ADMIN, true)
-				.register();
+		economyService = economyOpt.get();
+		PermissionService permissionService = Sponge.getServiceManager().provide(PermissionService.class).orElse(null);
+		if (permissionService != null)
+		{
+		    Builder adminBuilder = permissionService.newDescriptionBuilder(container);
+		    adminBuilder.id("rbounty.command.admin")
+					.description(Text.of("Allows the user to set bounties regardless of the bounty's current amount or the player's balance."))
+			    	.assign(PermissionDescription.ROLE_ADMIN, true)
+					.register();
 
-	    Builder userBuilder = permissionService.newDescriptionBuilder(container);
-	    userBuilder.id("rbounty.command.user")
-				.description(Text.of("Allows the user to view, add to, and claim bounties."))
-				.assign(PermissionDescription.ROLE_USER, true)
-				.register();
-	}
-		data = new RBountyData(logger);
-		logger.info("RBounty loaded");
+		    Builder userBuilder = permissionService.newDescriptionBuilder(container);
+		    userBuilder.id("rbounty.command.user")
+					.description(Text.of("Allows the user to view, add to, and claim bounties."))
+					.assign(PermissionDescription.ROLE_USER, true)
+					.register();
+		}
+			data = new RBountyData(logger);
+			logger.info("RBounty loaded");
     }
 
 	private void loadConfig() throws IOException, ObjectMappingException
@@ -191,18 +178,6 @@ public class RBountyPlugin {
 		this.configLoader.save(configNode);
 		//End config
 	}
-
-    public void broadcast(String msg, CommandSource src)
-	{
-		if (GeneralConfig.doBroadcasts)
-		{
-	 	   Sponge.getServer().getBroadcastChannel().send(Text.builder(msg).color(TextColors.BLUE).style(TextStyles.BOLD).build());
-		}
-		else if (src != null)
-		{
-			src.sendMessage(Text.builder(msg).color(TextColors.BLUE).build());
-		}
-    }
 
     private CommandSpec bountySet = CommandSpec.builder()
 			.description(Text.of("Sets a player's bounty"))
@@ -250,72 +225,4 @@ public class RBountyPlugin {
 			.child(bountyTop, "top", "leaderboard")
 	    	.child(bountyTopOnline, "topOnline", "leaderboardOnline")
 			.build();
-
-    /**
-     * Parses the bounty leaderboard and returns a chat friendly representation of
-     * it.
-     * 
-     * @param start  the first position to show on the leaderboard.
-     * @param end    the last position to show on the leaderboard
-     * @param online Whether to only look for online players
-     * @return a textual representation of the leaderboard
-     */
-    public Text parseLeaderboard(int start, int end, boolean online)
-	{
-		Text fail = Text.builder("No bounties were found in that range!")
-				.color(TextColors.BLUE)
-				.build();
-
-		ArrayList<Entry<UUID, Integer>> lb = data.getLeaderboard();
-
-		if (lb.size() <= start || start < 0 || start >= end || lb.get(start).getValue() == 0) {
-		    return fail;
-		}
-
-		Text.Builder builder = Text.builder();
-		int val;
-		User user;
-		int skip = 0;
-
-		if (online)
-		{
-		    int i = -1;
-		    while (start > -1)
-		    {
-				start -= 1;
-				i += 1;
-				user = userStorageService.get(lb.get(i).getKey()).get();
-				val = lb.get(i).getValue();
-				while (!user.isOnline()) {
-			    	i += 1;
-			    	user = userStorageService.get(lb.get(i).getKey()).get();
-			    	val = lb.get(i).getValue();
-			    	if (i >= lb.size() || val == 0)
-			    	{
-						return fail;
-			    	}
-				}
-		    }
-		    skip = i;
-		    start = i;
-		}
-
-		builder.append(Text.of("\n---------------------LEADERBOARD---------------------\n"));
-		for (int i = start; i < end && i < lb.size() && lb.get(i).getValue() > 0; i++)
-		{
-		    val = lb.get(i).getValue();
-		    user = userStorageService.get(lb.get(i).getKey()).get();
-		    if (online && !user.isOnline())
-		    {
-				skip += 1;
-				end += 1;
-				continue;
-		    }
-		    builder.append(Text.of((i + 1 - skip) + ". " + user.getName() + ", "
-			    + (economyService.getDefaultCurrency().format(BigDecimal.valueOf(val)).toPlain()) + "\n"));
-		}
-		builder.append(Text.of("-----------------------------------------------------"));
-		builder.color(TextColors.BLUE);
-		return builder.build();
-    }
 }

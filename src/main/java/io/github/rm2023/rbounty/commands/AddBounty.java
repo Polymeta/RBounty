@@ -1,6 +1,7 @@
 package io.github.rm2023.rbounty.commands;
 
 import io.github.rm2023.rbounty.RBountyPlugin;
+import io.github.rm2023.rbounty.Utility.Helper;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
@@ -68,12 +69,12 @@ public class AddBounty implements CommandExecutor
 
             if (instance.data.getBounty(user) == bounty)
             {
-                instance.broadcast("A bounty of "
+                Helper.broadcast("A bounty of "
                         + instance.economyService.getDefaultCurrency().format(BigDecimal.valueOf(bounty)).toPlain()
                         + " has been set on " + user.getName() + "!", src);
             }
             else {
-                instance.broadcast(user.getName() + "'s bounty has been increased by "
+                Helper.broadcast(user.getName() + "'s bounty has been increased by "
                         + instance.economyService.getDefaultCurrency().format(BigDecimal.valueOf(bounty)).toPlain()
                         + " and is now at " + instance.economyService.getDefaultCurrency()
                         .format(BigDecimal.valueOf(instance.data.getBounty(user))).toPlain()
