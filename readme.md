@@ -1,6 +1,6 @@
 # RBounty
 
-A simple bounty plugin for Sponge! Works with  any economy that implements Sponge's EconomyService. Tested with the current reccomended 1.12.2 versions of spongeforge, totaleconomy, and forge as of the 1-1-20 (spongeforge-1.12.2-2838-7.1.8.jar, TotalEconomy-1.8.1.jar, and forge-1.12.2-14.23.5.2847-universal.jar)
+A simple bounty plugin for Sponge! Works with  any economy that implements Sponge's EconomyService.
 
 
 **MECHANICS:**
@@ -31,15 +31,7 @@ rbounty.command.user - Grants basic permissions to rbounty and should be given t
 **CONFIGURATION:**
 
 Within /config/rbounty/rbounty.conf, there is a true/false setting to enable or disable serverwide broadcasts. 
-
-**TODO:**
-Configurable command cooldown to prevent spam.
-
-Permission check for allowing/disallowing bounty claims. 
-
-More configuration/permission customization.
-
-Allow item bounties?
+On top of that, you can decide how the broadcast messages look like, those also support color codes.
 
 **NOTE: This plugin is completely unrelated to an old Spigot plugin named RBounty that seems to have been abandoned after 1.8**
 
