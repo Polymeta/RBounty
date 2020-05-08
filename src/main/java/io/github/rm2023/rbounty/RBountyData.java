@@ -39,100 +39,108 @@ public class RBountyData {
     // Cache for RBountyData. All bounty gets use cache
     // All bounty sets write both to cache and playerdata
     // Cache is constructed from playerdata on initialization
-    protected HashMap<UUID, Integer> cache;
+	private HashMap<UUID, Integer> cache;
 
-    protected UserStorageService userStorage;
+    private UserStorageService userStorage;
 
     private Logger logger;
 
-    public ArrayList<Map.Entry<UUID, Integer>> leaderboard;
+    private ArrayList<Map.Entry<UUID, Integer>> leaderboard;
 
     private boolean validLeaderboard = false;
 
-    public RBountyData(Logger logger) {
-	userStorage = Sponge.getServiceManager().provide(UserStorageService.class).get();
-	this.logger = logger;
-	resetCache();
-	resetLeaderboard();
+    public RBountyData(Logger logger)
+	{
+		userStorage = Sponge.getServiceManager().provide(UserStorageService.class).get();
+		this.logger = logger;
+		resetCache();
+		resetLeaderboard();
     }
 
     /**
      * Sets up the cache for RBountyData by iterating through all users in
      * userStorage and storing their bounties in the cache.
      */
-    protected void resetCache() {
-	Collection<GameProfile> userProfiles = userStorage.getAll();
+	private void resetCache()
+	{
+		Collection<GameProfile> userProfiles = userStorage.getAll();
 
-	cache = new HashMap<UUID, Integer>();
-
-	for (GameProfile userProfile : userProfiles) {
-	    User user = userStorage.get(userProfile).orElse(null);
-	    if (user == null) {
-		continue;
-	    }
-	    Integer playerBounty = user.get(RBountyPlugin.BOUNTY).orElse(null);
-	    if (playerBounty == null) {
-		if (user.offer(new BountyData(0)).isSuccessful()) {
-		    cache.put(user.getUniqueId(), 0);
-		} else {
-		    logger.error("Error while reading bounty for " + user.getName() + ".");
+		cache = new HashMap<>();
+		for (GameProfile userProfile : userProfiles)
+		{
+		    User user = userStorage.get(userProfile).orElse(null);
+		    if (user == null)
+		    {
+				continue;
+		    }
+		    Integer playerBounty = user.get(RBountyPlugin.BOUNTY).orElse(null);
+		    if (playerBounty == null)
+		    {
+				if (user.offer(new BountyData(0)).isSuccessful())
+				{
+			    	cache.put(user.getUniqueId(), 0);
+				}
+				else {
+			    	logger.error("Error while reading bounty for " + user.getName() + ".");
+				}
+				continue;
+		    }
+		    cache.put(user.getUniqueId(), playerBounty);
 		}
-		continue;
-	    }
-	    cache.put(user.getUniqueId(), playerBounty);
-	}
     }
 
-    public int getBounty(User user) {
-	if (cache.containsKey(user.getUniqueId())) {
-	    return cache.get(user.getUniqueId());
-	}
-	return 0;
+    public int getBounty(User user)
+	{
+		if (cache.containsKey(user.getUniqueId()))
+		{
+	    	return cache.get(user.getUniqueId());
+		}
+		return 0;
     }
 
-    public boolean setBounty(User user, int bounty) {
-	if (user == null) {
-	    return false;
-	}
-	DataTransactionResult result;
-	if (user.get(RBountyPlugin.BOUNTY).isPresent()) {
-	    result = user.offer(RBountyPlugin.BOUNTY, bounty);
-	} else {
-	    result = user.offer(new BountyData(bounty));
-	}
-	if (result.isSuccessful()) {
-	    cache.put(user.getUniqueId(), bounty);
-	    validLeaderboard = false;
-	    return true;
-	}
-	logger.error(result.toString());
-	return false;
-    }
+    public boolean setBounty(User user, int bounty)
+	{
+		if (user == null)
+		{
+		    return false;
+		}
+		DataTransactionResult result;
+		if (user.get(RBountyPlugin.BOUNTY).isPresent())
+		{
+		    result = user.offer(RBountyPlugin.BOUNTY, bounty);
+		}
+		else {
+		    result = user.offer(new BountyData(bounty));
+		}
 
-    public boolean setBounty(UUID uuid, int bounty) {
-	return setBounty(userStorage.get(uuid).orElseGet(null), bounty);
+		if (result.isSuccessful())
+		{
+		    cache.put(user.getUniqueId(), bounty);
+		    validLeaderboard = false;
+		    return true;
+		}
+		logger.error(result.toString());
+		return false;
     }
 
     /**
      * Converts the cache into a list and sorts it in descending order and sets
      * leaderboard to that.
      */
-    private void resetLeaderboard() {
-	leaderboard = new ArrayList<Map.Entry<UUID, Integer>>();
-	leaderboard.addAll(cache.entrySet());
-	leaderboard.sort(new Comparator<Map.Entry<UUID, Integer>>() {
-	    public int compare(Map.Entry<UUID, Integer> o1, Map.Entry<UUID, Integer> o2) {
-		return (o2.getValue()).compareTo(o1.getValue());
-	    }
-	});
+    private void resetLeaderboard()
+	{
+		leaderboard = new ArrayList<>();
+		leaderboard.addAll(cache.entrySet());
+		leaderboard.sort((o1, o2) -> (o2.getValue()).compareTo(o1.getValue()));
 
-	validLeaderboard = true;
+		validLeaderboard = true;
     }
 
-    public ArrayList<Entry<UUID, Integer>> getLeaderboard() {
-	if (!validLeaderboard) {
-	    resetLeaderboard();
-	}
-	return leaderboard;
+    public ArrayList<Entry<UUID, Integer>> getLeaderboard()
+	{
+		if (!validLeaderboard) {
+	    	resetLeaderboard();
+		}
+		return leaderboard;
     }
 }

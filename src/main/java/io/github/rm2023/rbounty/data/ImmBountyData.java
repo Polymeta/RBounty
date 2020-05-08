@@ -17,6 +17,7 @@
 
 package io.github.rm2023.rbounty.data;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.key.Key;
 import org.spongepowered.api.data.manipulator.immutable.common.AbstractImmutableSingleData;
@@ -53,11 +54,13 @@ public class ImmBountyData extends AbstractImmutableSingleData<Integer, ImmBount
     }
 
     @Override
+    @NonNull
     public ImmutableValue<Integer> getValueGetter() {
 	return immutableValue;
     }
 
     @Override
+    @NonNull
     public BountyData asMutable() {
 	return new BountyData(getValue());
     }

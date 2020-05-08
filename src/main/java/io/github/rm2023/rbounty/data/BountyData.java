@@ -19,6 +19,7 @@ package io.github.rm2023.rbounty.data;
 
 import java.util.Optional;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.DataContainer;
 import org.spongepowered.api.data.DataHolder;
@@ -44,19 +45,21 @@ public class BountyData extends AbstractSingleData<Integer, BountyData, ImmBount
 	super(0, RBountyPlugin.BOUNTY);
     }
 
+    @NonNull
     @Override
     public Optional<BountyData> fill(DataHolder dataHolder, MergeFunction overlap) {
-	BountyData merged = overlap.merge(this, dataHolder.get(BountyData.class).orElse(null));
-	setValue(merged.getValue());
-	return Optional.of(this);
+	    BountyData merged = overlap.merge(this, dataHolder.get(BountyData.class).orElse(null));
+	    setValue(merged.getValue());
+	    return Optional.of(this);
     }
 
     @Override
+    @NonNull
     public Optional<BountyData> from(DataContainer container) {
-	if (container.contains(RBountyPlugin.BOUNTY)) {
-	    return Optional.of(setValue(container.getInt(RBountyPlugin.BOUNTY.getQuery()).get()));
-	}
-	return Optional.empty();
+	    if (container.contains(RBountyPlugin.BOUNTY)) {
+	        return Optional.of(setValue(container.getInt(RBountyPlugin.BOUNTY.getQuery()).get()));
+	    }
+	    return Optional.empty();
     }
 
     @Override
@@ -70,11 +73,13 @@ public class BountyData extends AbstractSingleData<Integer, BountyData, ImmBount
     }
 
     @Override
+    @NonNull
     protected Value<Integer> getValueGetter() {
-	return Sponge.getRegistry().getValueFactory().createValue(RBountyPlugin.BOUNTY, getValue());
+	    return Sponge.getRegistry().getValueFactory().createValue(RBountyPlugin.BOUNTY, getValue());
     }
 
     @Override
+    @NonNull
     public ImmBountyData asImmutable() {
 	return new ImmBountyData(getValue());
     }
