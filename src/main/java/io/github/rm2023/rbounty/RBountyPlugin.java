@@ -24,6 +24,7 @@ import io.github.rm2023.rbounty.config.GeneralConfig;
 import io.github.rm2023.rbounty.data.BountyData;
 import io.github.rm2023.rbounty.data.BountyDataBuilder;
 import io.github.rm2023.rbounty.data.ImmBountyData;
+import io.github.rm2023.rbounty.listener.EntityDeath;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
@@ -118,7 +119,7 @@ public class RBountyPlugin {
 		{
 			e.printStackTrace();
 		}
-
+		Sponge.getEventManager().registerListeners(this, new EntityDeath(this));
 		Sponge.getCommandManager().register(container, bountyMain, "bounty");
     }
     
@@ -200,47 +201,6 @@ public class RBountyPlugin {
 		else if (src != null)
 		{
 			src.sendMessage(Text.builder(msg).color(TextColors.BLUE).build());
-		}
-    }
-
-    @Listener
-    public void onEntityDeath(DestructEntityEvent.Death event)
-	{
-		// If an entity is killed, that entity happens to be a player w/ a bounty, and
-		// the entitydeath cause has another player in it with a valid currency account,
-		// award the killer the bounty.
-		if (event.getTargetEntity() instanceof User)
-		{
-		    User killed = (User) event.getTargetEntity();
-		    User killer = null;
-		    for (Object object : event.getCause().all())
-		    {
-				if (object instanceof User && !((User) object).getName().equals(killed.getName()))
-				{
-			    	killer = (User) object;
-			    	break;
-				}
-		    }
-		    if (killer != null
-					&& !event.getContext().containsKey(EventContextKeys.FAKE_PLAYER)
-			    	&& data.getBounty(killed) > 0)
-		    {
-				UniqueAccount killerAccount = economyService.getOrCreateAccount(killer.getUniqueId()).orElse(null);
-				if (killerAccount != null)
-				{
-				    killerAccount.deposit(economyService.getDefaultCurrency(),
-					    BigDecimal.valueOf(data.getBounty(killed)),
-					    Cause.builder()
-								.append(killed)
-								.append(killer)
-								.append(container)
-						    	.build(EventContext.builder()
-										.add(EventContextKeys.PLUGIN, container)
-										.build()));
-				    data.setBounty(killed, 0);
-				    broadcast(killer.getName() + " has claimed " + killed.getName() + "'s bounty!", null);
-				}
-		    }
 		}
     }
 
@@ -357,11 +317,5 @@ public class RBountyPlugin {
 		builder.append(Text.of("-----------------------------------------------------"));
 		builder.color(TextColors.BLUE);
 		return builder.build();
-    }
-
-    @Listener
-    public void onRespawn(RespawnPlayerEvent event)
-	{
-        event.getTargetEntity().offer(RBountyPlugin.BOUNTY, event.getOriginalPlayer().get(RBountyPlugin.BOUNTY).get());
     }
 }
