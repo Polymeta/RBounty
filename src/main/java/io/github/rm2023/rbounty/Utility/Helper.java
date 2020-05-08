@@ -5,7 +5,6 @@ import io.github.rm2023.rbounty.config.GeneralConfig;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.entity.living.player.User;
-import org.spongepowered.api.service.user.UserStorageService;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.text.format.TextStyles;
@@ -62,11 +61,11 @@ public class Helper
             {
                 start -= 1;
                 i += 1;
-                user = RBountyPlugin.getInstance().userStorageService.get(lb.get(i).getKey()).get();
+                user = RBountyPlugin.getInstance().getUserStorageService().get(lb.get(i).getKey()).get();
                 val = lb.get(i).getValue();
                 while (!user.isOnline()) {
                     i += 1;
-                    user = RBountyPlugin.getInstance().userStorageService.get(lb.get(i).getKey()).get();
+                    user = RBountyPlugin.getInstance().getUserStorageService().get(lb.get(i).getKey()).get();
                     val = lb.get(i).getValue();
                     if (i >= lb.size() || val == 0)
                     {
@@ -82,7 +81,7 @@ public class Helper
         for (int i = start; i < end && i < lb.size() && lb.get(i).getValue() > 0; i++)
         {
             val = lb.get(i).getValue();
-            user = RBountyPlugin.getInstance().userStorageService.get(lb.get(i).getKey()).get();
+            user = RBountyPlugin.getInstance().getUserStorageService().get(lb.get(i).getKey()).get();
             if (online && !user.isOnline())
             {
                 skip += 1;
@@ -90,7 +89,7 @@ public class Helper
                 continue;
             }
             builder.append(Text.of((i + 1 - skip) + ". " + user.getName() + ", "
-                    + (RBountyPlugin.getInstance().economyService.getDefaultCurrency().format(BigDecimal.valueOf(val)).toPlain()) + "\n"));
+                    + (RBountyPlugin.getInstance().getEconomyService().getDefaultCurrency().format(BigDecimal.valueOf(val)).toPlain()) + "\n"));
         }
         builder.append(Text.of("-----------------------------------------------------"));
         builder.color(TextColors.BLUE);

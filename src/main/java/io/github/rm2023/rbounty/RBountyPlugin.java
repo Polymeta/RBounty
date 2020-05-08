@@ -70,16 +70,26 @@ public class RBountyPlugin
 	}
 
 	public static Key<Value<Integer>> BOUNTY = DummyObjectProvider.createExtendedFor(Key.class, "BOUNTY");
-    public RBountyData data = null;
+    public RBountyData data;
 
     @Inject
-    public PluginContainer container;
+    private PluginContainer container;
+	public PluginContainer getContainer() {
+		return container;
+	}
 
-    @Inject
+	@Inject
     private Logger logger;
 
-	public EconomyService economyService;
-    public UserStorageService userStorageService;
+	private EconomyService economyService;
+	public EconomyService getEconomyService() {
+		return economyService;
+	}
+
+	private UserStorageService userStorageService;
+	public UserStorageService getUserStorageService() {
+	return userStorageService;
+	}
 
     @Inject
     @ConfigDir(sharedRoot = false)
@@ -144,7 +154,9 @@ public class RBountyPlugin
 		{
 		    logger.error("RBounty REQUIRES a plugin with an economy API in order to function.");
 		    Sponge.getEventManager().unregisterPluginListeners(this);
-		    Sponge.getCommandManager().getOwnedBy(this).forEach(Sponge.getCommandManager()::removeMapping);
+		    Sponge.getCommandManager()
+					.getOwnedBy(this)
+					.forEach(Sponge.getCommandManager()::removeMapping);
 		    logger.info("RBounty is now disabled.");
 		    return;
 		}

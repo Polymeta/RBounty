@@ -42,15 +42,15 @@ public class AddBounty implements CommandExecutor
         {
             throw new CommandException(Text.builder("Bounty must be a positive integer.").color(TextColors.RED).build());
         }
-        UniqueAccount account = instance.economyService.getOrCreateAccount(((Player) src).getUniqueId()).orElse(null);
+        UniqueAccount account = instance.getEconomyService().getOrCreateAccount(((Player) src).getUniqueId()).orElse(null);
         if (account == null)
         {
             throw new CommandException(Text.builder("An error occured. Check economy plugin for more information.").color(TextColors.RED).build());
         }
-        if (account.getBalance(instance.economyService.getDefaultCurrency()).compareTo(BigDecimal.valueOf(bounty)) < 0)
+        if (account.getBalance(instance.getEconomyService().getDefaultCurrency()).compareTo(BigDecimal.valueOf(bounty)) < 0)
         {
             src.sendMessage(Text.builder("You don't have enough money to bounty " + user.getName() + " for "
-                    + instance.economyService.getDefaultCurrency().format(BigDecimal.valueOf(bounty)).toPlain() + ".")
+                    + instance.getEconomyService().getDefaultCurrency().format(BigDecimal.valueOf(bounty)).toPlain() + ".")
                     .color(TextColors.BLUE)
                     .build());
             return CommandResult.empty();
@@ -58,25 +58,25 @@ public class AddBounty implements CommandExecutor
 
         if (instance.data.setBounty(user, bounty + instance.data.getBounty(user)))
         {
-            account.withdraw(instance.economyService.getDefaultCurrency(),
+            account.withdraw(instance.getEconomyService().getDefaultCurrency(),
                     BigDecimal.valueOf(bounty),
                     Cause.builder()
                             .append(src)
-                            .append(instance.container)
+                            .append(instance.getContainer())
                             .build(EventContext.builder()
-                                    .add(EventContextKeys.PLUGIN, instance.container)
+                                    .add(EventContextKeys.PLUGIN, instance.getContainer())
                                     .build()));
 
             if (instance.data.getBounty(user) == bounty)
             {
                 Helper.broadcast("A bounty of "
-                        + instance.economyService.getDefaultCurrency().format(BigDecimal.valueOf(bounty)).toPlain()
+                        + instance.getEconomyService().getDefaultCurrency().format(BigDecimal.valueOf(bounty)).toPlain()
                         + " has been set on " + user.getName() + "!", src);
             }
             else {
                 Helper.broadcast(user.getName() + "'s bounty has been increased by "
-                        + instance.economyService.getDefaultCurrency().format(BigDecimal.valueOf(bounty)).toPlain()
-                        + " and is now at " + instance.economyService.getDefaultCurrency()
+                        + instance.getEconomyService().getDefaultCurrency().format(BigDecimal.valueOf(bounty)).toPlain()
+                        + " and is now at " + instance.getEconomyService().getDefaultCurrency()
                         .format(BigDecimal.valueOf(instance.data.getBounty(user))).toPlain()
                         + "!", src);
             }

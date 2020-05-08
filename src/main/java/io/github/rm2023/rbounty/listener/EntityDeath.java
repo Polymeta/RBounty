@@ -44,17 +44,17 @@ public class EntityDeath
                     && !event.getContext().containsKey(EventContextKeys.FAKE_PLAYER)
                     && instace.data.getBounty(killed) > 0)
             {
-                UniqueAccount killerAccount = instace.economyService.getOrCreateAccount(killer.getUniqueId()).orElse(null);
+                UniqueAccount killerAccount = instace.getEconomyService().getOrCreateAccount(killer.getUniqueId()).orElse(null);
                 if (killerAccount != null)
                 {
-                    killerAccount.deposit(instace.economyService.getDefaultCurrency(),
+                    killerAccount.deposit(instace.getEconomyService().getDefaultCurrency(),
                             BigDecimal.valueOf(instace.data.getBounty(killed)),
                             Cause.builder()
                                     .append(killed)
                                     .append(killer)
-                                    .append(instace.container)
+                                    .append(instace.getContainer())
                                     .build(EventContext.builder()
-                                            .add(EventContextKeys.PLUGIN, instace.container)
+                                            .add(EventContextKeys.PLUGIN, instace.getContainer())
                                             .build()));
                     instace.data.setBounty(killed, 0);
                     Helper.broadcast(killer.getName() + " has claimed " + killed.getName() + "'s bounty!", null);

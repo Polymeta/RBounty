@@ -37,7 +37,7 @@ public class SetBounty implements CommandExecutor
         if (instance.data.setBounty(user, bounty))
         {
             Helper.broadcast(user.getName() + "'s bounty has been set to "
-                    + instance.economyService.getDefaultCurrency().format(BigDecimal.valueOf(instance.data.getBounty(user))).toPlain()
+                    + instance.getEconomyService().getDefaultCurrency().format(BigDecimal.valueOf(instance.data.getBounty(user))).toPlain()
                     + "!", src);
             return CommandResult.success();
         }
