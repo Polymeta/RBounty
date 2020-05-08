@@ -17,14 +17,17 @@
 
 package io.github.rm2023.rbounty;
 
+import com.google.common.reflect.TypeToken;
 import com.google.inject.Inject;
 import io.github.rm2023.rbounty.commands.*;
+import io.github.rm2023.rbounty.config.GeneralConfig;
 import io.github.rm2023.rbounty.data.BountyData;
 import io.github.rm2023.rbounty.data.BountyDataBuilder;
 import io.github.rm2023.rbounty.data.ImmBountyData;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
+import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 import org.slf4j.Logger;
 import org.spongepowered.api.Game;
 import org.spongepowered.api.Sponge;
@@ -93,50 +96,9 @@ public class RBountyPlugin {
 
     @Inject
     @ConfigDir(sharedRoot = false)
-    private Path configDir;
-
-    private Path configFile;
-
     private ConfigurationLoader<CommentedConfigurationNode> configLoader;
     private CommentedConfigurationNode configNode;
-    private boolean broadcasts = true;
-
-    // Creates config file
-	private void setup()
-	{
-		if (!Files.exists(configFile))
-		{
-		    try
-			{
-				Files.createFile(configFile);
-				configNode = configLoader.load();
-				CommentedConfigurationNode broadcastNode = configNode.getNode("allowBroadcasts");
-				broadcastNode.setComment("Should the server broadcast bounty changes/claims?");
-				broadcastNode.setValue(true);
-				configLoader.save(configNode);
-		    }
-		    catch (Exception e)
-			{
-				e.printStackTrace();
-		    }
-		} else {
-		    load();
-		}
-    }
-
-    // Loads config file if it already exists
-	private void load()
-	{
-		try
-		{
-	    	configNode = configLoader.load();
-	    	broadcasts = configNode.getNode("allowBroadcasts").getBoolean();
-		}
-		catch (IOException e)
-		{
-	    	e.printStackTrace();
-		}
-    }
+    private GeneralConfig config;
 
     @Listener
     public void onInit(GameInitializationEvent event)
@@ -149,21 +111,13 @@ public class RBountyPlugin {
 				.dataName("Bounty")
 				.buildAndRegister(container);
 
-		// Creates config directory, your could also create a method for this.
-		if (!Files.exists(configDir))
-		{
-		    try
-			{
-				Files.createDirectories(configDir);
-		    }
-		    catch (IOException io)
-			{
-				io.printStackTrace();
-		    }
+		try {
+			loadConfig();
 		}
-		configFile = configDir.resolve("rbounty.conf");
-		configLoader = HoconConfigurationLoader.builder().setPath(configFile).build();
-		setup();
+		catch (IOException | ObjectMappingException e)
+		{
+			e.printStackTrace();
+		}
 
 		Sponge.getCommandManager().register(container, bountyMain, "bounty");
     }
@@ -171,10 +125,15 @@ public class RBountyPlugin {
     @Listener
     public void onReload(GameReloadEvent event)
 	{
-		configFile = configDir.resolve("rbounty.conf");
-		configLoader = HoconConfigurationLoader.builder().setPath(configFile).build();
-		setup();
-    }
+		try
+		{
+			loadConfig();
+		}
+		catch (IOException | ObjectMappingException e)
+		{
+			e.printStackTrace();
+		}
+	}
 
     @Listener
     public void onRegistration(GameRegistryEvent.Register<Key<?>> event)
@@ -221,9 +180,20 @@ public class RBountyPlugin {
 		logger.info("RBounty loaded");
     }
 
+	private void loadConfig() throws IOException, ObjectMappingException
+	{
+		//Config
+		this.configNode = this.configLoader.load();
+		@SuppressWarnings("UnstableApiUsage") TypeToken<GeneralConfig> type = TypeToken.of(GeneralConfig.class);
+		this.config = configNode.getValue(type, new GeneralConfig());
+		configNode.setValue(type, this.config);
+		this.configLoader.save(configNode);
+		//End config
+	}
+
     public void broadcast(String msg, CommandSource src)
 	{
-		if (broadcasts)
+		if (GeneralConfig.doBroadcasts)
 		{
 	 	   Sponge.getServer().getBroadcastChannel().send(Text.builder(msg).color(TextColors.BLUE).style(TextStyles.BOLD).build());
 		}
