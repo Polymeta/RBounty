@@ -39,7 +39,7 @@ public class SetBounty implements CommandExecutor
         {
             Helper.broadcast(instance.getConfig().bountySetMessage
                     .replace("%bounty%", instance.getEconomyService().getDefaultCurrency().format(BigDecimal.valueOf(instance.data.getBounty(user))).toPlain())
-                    .replace("&player&", user.getName()), src);
+                    .replace("%player%", user.getName()), src);
             return CommandResult.success();
         }
         else{

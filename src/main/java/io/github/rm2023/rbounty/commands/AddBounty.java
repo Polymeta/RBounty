@@ -72,13 +72,13 @@ public class AddBounty implements CommandExecutor
             {
                 Helper.broadcast(instance.getConfig().bountySetMessage
                         .replace("%bounty%", instance.getEconomyService().getDefaultCurrency().format(BigDecimal.valueOf(instance.data.getBounty(user))).toPlain())
-                        .replace("&player&", user.getName()), src);
+                        .replace("%player%", user.getName()), src);
             }
             else {
                 Helper.broadcast(instance.getConfig().bountyIncreasedMessage
                         .replace("%difference%", Integer.toString(bounty))
                         .replace("%bounty%", instance.getEconomyService().getDefaultCurrency().format(BigDecimal.valueOf(instance.data.getBounty(user))).toPlain())
-                        .replace("&player&", user.getName()), src);
+                        .replace("%player%", user.getName()), src);
             }
             return CommandResult.success();
         }
