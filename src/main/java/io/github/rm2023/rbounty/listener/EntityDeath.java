@@ -74,6 +74,7 @@ public class EntityDeath
     @Listener
     public void onRespawn(RespawnPlayerEvent event)
     {
-        event.getTargetEntity().offer(RBountyPlugin.BOUNTY, event.getOriginalPlayer().get(RBountyPlugin.BOUNTY).get());
+        event.getOriginalPlayer().get(RBountyPlugin.BOUNTY).ifPresent(data ->
+                event.getTargetEntity().offer(RBountyPlugin.BOUNTY, data));
     }
 }
