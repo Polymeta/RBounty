@@ -44,7 +44,10 @@ public class EntityDeath
                     killer = (User) damageDone.getSource();
                 }
             }
-
+            
+            if(killer == killed)
+                return; // prevents getting bounty by killing oneself
+            
             if (killer != null &&
                     !event.getContext().containsKey(EventContextKeys.FAKE_PLAYER) &&
                     instace.data.getBounty(killed) > 0)
