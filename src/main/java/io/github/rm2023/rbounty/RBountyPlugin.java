@@ -197,13 +197,11 @@ public class RBountyPlugin
     @SuppressWarnings("UnstableApiUsage")
     private void loadConfig() throws IOException, ObjectMappingException
     {
-        //Config
         CommentedConfigurationNode configNode = this.configLoader.load();
         TypeToken<GeneralConfig> type = TypeToken.of(GeneralConfig.class);
         this.config = configNode.getValue(type, new GeneralConfig());
         configNode.setValue(type, this.config);
         this.configLoader.save(configNode);
-        //End config
     }
 
     private final CommandSpec bountySet = CommandSpec.builder()
@@ -228,7 +226,6 @@ public class RBountyPlugin
                     GenericArguments.onlyOne(GenericArguments.integer(Text.of("bounty"))))
             .executor(new AddBounty(this))
             .build();
-
 
     private final CommandSpec bountyTop = CommandSpec.builder()
             .description(Text.of("Shows the bounty leaderboards"))
