@@ -18,7 +18,8 @@ jobs:
       - uses: actions/setup-java@v1
         with:
           java-version: 8
-
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
       # Execute Gradle commands in GitHub Actions workflows
       # => https://github.com/marketplace/actions/gradle-command
       - uses: eskatos/gradle-command-action@v1
