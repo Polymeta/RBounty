@@ -57,9 +57,9 @@ import java.io.IOException;
 import java.util.Optional;
 
 @Plugin(id = "rbounty",
-		name = "RBounty",
-		version = "2.0.2",
-		description = "A plugin allowing the placing and claiming of player bounties.")
+        name = "RBounty",
+        version = "2.0.5",
+        description = "A plugin allowing the placing and claiming of player bounties.")
 public class RBountyPlugin
 {
     private static RBountyPlugin instance;
