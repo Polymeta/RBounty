@@ -17,9 +17,7 @@
 
 package io.github.rm2023.rbounty.data;
 
-import java.util.Optional;
-
-import org.checkerframework.checker.nullness.qual.NonNull;
+import io.github.rm2023.rbounty.RBountyPlugin;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.DataContainer;
 import org.spongepowered.api.data.DataHolder;
@@ -29,58 +27,64 @@ import org.spongepowered.api.data.merge.MergeFunction;
 import org.spongepowered.api.data.value.BaseValue;
 import org.spongepowered.api.data.value.mutable.Value;
 
-import io.github.rm2023.rbounty.RBountyPlugin;
+import java.util.Optional;
 
-public class BountyData extends AbstractSingleData<Integer, BountyData, ImmBountyData> {
-
-    public BountyData(int value, Key<? extends BaseValue<Integer>> usedKey) {
-	super(value, usedKey);
+public class BountyData extends AbstractSingleData<Integer, BountyData, ImmBountyData>
+{
+    public BountyData(int value, Key<? extends BaseValue<Integer>> usedKey)
+    {
+        super(value, usedKey);
     }
 
-    public BountyData(int value) {
-	super(value, RBountyPlugin.BOUNTY);
+    public BountyData(int value)
+    {
+        super(value, RBountyPlugin.BOUNTY);
     }
 
-    public BountyData() {
-	super(0, RBountyPlugin.BOUNTY);
-    }
-
-    @NonNull
-    @Override
-    public Optional<BountyData> fill(DataHolder dataHolder, MergeFunction overlap) {
-	    BountyData merged = overlap.merge(this, dataHolder.get(BountyData.class).orElse(null));
-	    setValue(merged.getValue());
-	    return Optional.of(this);
+    public BountyData()
+    {
+        super(0, RBountyPlugin.BOUNTY);
     }
 
     @Override
-    @NonNull
-    public Optional<BountyData> from(DataContainer container) {
-	    if (container.contains(RBountyPlugin.BOUNTY)) {
-	        return Optional.of(setValue(container.getInt(RBountyPlugin.BOUNTY.getQuery()).get()));
-	    }
-	    return Optional.empty();
+    public Optional<BountyData> fill(DataHolder dataHolder, MergeFunction overlap)
+    {
+        BountyData merged = overlap.merge(this, dataHolder.get(BountyData.class).orElse(null));
+        setValue(merged.getValue());
+        return Optional.of(this);
     }
 
     @Override
-    public BountyData copy() {
-	return new BountyData(getValue());
+    public Optional<BountyData> from(DataContainer container)
+    {
+        if (container.contains(RBountyPlugin.BOUNTY))
+        {
+            return Optional.of(setValue(container.getInt(RBountyPlugin.BOUNTY.getQuery()).get()));
+        }
+        return Optional.empty();
     }
 
     @Override
-    public int getContentVersion() {
-	return 1;
+    public BountyData copy()
+    {
+        return new BountyData(getValue());
     }
 
     @Override
-    @NonNull
-    protected Value<Integer> getValueGetter() {
-	    return Sponge.getRegistry().getValueFactory().createValue(RBountyPlugin.BOUNTY, getValue());
+    public int getContentVersion()
+    {
+        return 1;
     }
 
     @Override
-    @NonNull
-    public ImmBountyData asImmutable() {
-	return new ImmBountyData(getValue());
+    protected Value<Integer> getValueGetter()
+    {
+        return Sponge.getRegistry().getValueFactory().createValue(RBountyPlugin.BOUNTY, getValue());
+    }
+
+    @Override
+    public ImmBountyData asImmutable()
+    {
+        return new ImmBountyData(getValue());
     }
 }

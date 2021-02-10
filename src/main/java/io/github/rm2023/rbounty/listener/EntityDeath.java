@@ -18,7 +18,7 @@ import java.util.Optional;
 
 public class EntityDeath
 {
-    private RBountyPlugin instace;
+    private final RBountyPlugin instace;
 
     public EntityDeath(RBountyPlugin rBountyPlugin)
     {
@@ -35,24 +35,25 @@ public class EntityDeath
         {
             User killed = (User) event.getTargetEntity();
             User killer = null;
-            Optional<EntityDamageSource> damageOpt= event.getCause().first(EntityDamageSource.class);
-            if(damageOpt.isPresent())
+            Optional<EntityDamageSource> damageOpt = event.getCause().first(EntityDamageSource.class);
+            if (damageOpt.isPresent())
             {
                 EntityDamageSource damageDone = damageOpt.get();
-                if(damageDone.getSource().getType().equals(EntityTypes.PLAYER))
+                if (damageDone.getSource().getType().equals(EntityTypes.PLAYER))
                 {
                     killer = (User) damageDone.getSource();
                 }
             }
-            
-            if(killer == killed)
+
+            if (killer == killed)
                 return; // prevents getting bounty by killing oneself
-            
+
             if (killer != null &&
                     !event.getContext().containsKey(EventContextKeys.FAKE_PLAYER) &&
                     instace.data.getBounty(killed) > 0)
             {
-                UniqueAccount killerAccount = instace.getEconomyService().getOrCreateAccount(killer.getUniqueId()).orElse(null);
+                UniqueAccount killerAccount = instace.getEconomyService().getOrCreateAccount(killer.getUniqueId()).orElse(
+                        null);
                 if (killerAccount != null)
                 {
                     killerAccount.deposit(instace.getEconomyService().getDefaultCurrency(),
@@ -67,7 +68,9 @@ public class EntityDeath
                     Helper.broadcast(instace.getConfig().claimMessage
                             .replace("%killer%", killer.getName())
                             .replace("%victim%", killed.getName())
-                            .replace("%bounty%", instace.getEconomyService().getDefaultCurrency().format(BigDecimal.valueOf(instace.data.getBounty(killed))).toPlain()), null);
+                            .replace("%bounty%",
+                                    instace.getEconomyService().getDefaultCurrency().format(BigDecimal.valueOf(instace.data.getBounty(
+                                            killed))).toPlain()), null);
                     instace.data.setBounty(killed, 0);
                 }
             }

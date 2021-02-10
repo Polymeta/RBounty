@@ -32,7 +32,6 @@ import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.args.GenericArguments;
 import org.spongepowered.api.command.spec.CommandSpec;
-import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.config.DefaultConfig;
 import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.data.DataRegistration;
@@ -63,183 +62,194 @@ import java.util.Optional;
 		description = "A plugin allowing the placing and claiming of player bounties.")
 public class RBountyPlugin
 {
-	private static RBountyPlugin instance;
+    private static RBountyPlugin instance;
 
-	public static RBountyPlugin getInstance()
-	{
-		return instance;
-	}
+    public static RBountyPlugin getInstance()
+    {
+        return instance;
+    }
 
-	public static Key<Value<Integer>> BOUNTY = DummyObjectProvider.createExtendedFor(Key.class, "BOUNTY");
+    public static Key<Value<Integer>> BOUNTY = DummyObjectProvider.createExtendedFor(Key.class, "BOUNTY");
     public RBountyData data;
 
     @Inject
     private PluginContainer container;
-	public PluginContainer getContainer() {
-		return container;
-	}
 
-	@Inject
+    public PluginContainer getContainer()
+    {
+        return container;
+    }
+
+    @Inject
     private Logger logger;
 
-	private EconomyService economyService;
-	public EconomyService getEconomyService() {
-		return economyService;
-	}
+    private EconomyService economyService;
 
-	private UserStorageService userStorageService;
-	public UserStorageService getUserStorageService() {
-	return userStorageService;
-	}
+    public EconomyService getEconomyService()
+    {
+        return economyService;
+    }
+
+    private UserStorageService userStorageService;
+
+    public UserStorageService getUserStorageService()
+    {
+        return userStorageService;
+    }
 
     @Inject
     @DefaultConfig(sharedRoot = false)
     private ConfigurationLoader<CommentedConfigurationNode> configLoader;
 
-	private CommentedConfigurationNode configNode;
     private GeneralConfig config;
-	public GeneralConfig getConfig() {
-		return config;
-	}
 
-	@Listener
-    public void onInit(GameInitializationEvent event)
-	{
-		instance = this;
-		DataRegistration.builder()
-				.dataClass(BountyData.class)
-				.immutableClass(ImmBountyData.class)
-				.builder(new BountyDataBuilder())
-				.manipulatorId("rbounty:bounty")
-				.dataName("Bounty")
-				.buildAndRegister(container);
-
-		try {
-			loadConfig();
-		}
-		catch (IOException | ObjectMappingException e)
-		{
-			e.printStackTrace();
-		}
-		Sponge.getEventManager().registerListeners(this, new EntityDeath(this));
-		Sponge.getCommandManager().register(container, bountyMain, "bounty");
+    public GeneralConfig getConfig()
+    {
+        return config;
     }
-    
+
+    @Listener
+    public void onInit(GameInitializationEvent event)
+    {
+        instance = this;
+        DataRegistration.builder()
+                .dataClass(BountyData.class)
+                .immutableClass(ImmBountyData.class)
+                .builder(new BountyDataBuilder())
+                .manipulatorId("rbounty:bounty")
+                .dataName("Bounty")
+                .buildAndRegister(container);
+
+        try
+        {
+            loadConfig();
+        }
+        catch (IOException | ObjectMappingException e)
+        {
+            e.printStackTrace();
+        }
+        Sponge.getEventManager().registerListeners(this, new EntityDeath(this));
+        Sponge.getCommandManager().register(container, bountyMain, "bounty");
+    }
+
     @Listener
     public void onReload(GameReloadEvent event)
-	{
-		try
-		{
-			loadConfig();
-		}
-		catch (IOException | ObjectMappingException e)
-		{
-			e.printStackTrace();
-		}
-	}
+    {
+        try
+        {
+            loadConfig();
+        }
+        catch (IOException | ObjectMappingException e)
+        {
+            e.printStackTrace();
+        }
+    }
 
+    @SuppressWarnings("UnstableApiUsage")
     @Listener
     public void onRegistration(GameRegistryEvent.Register<Key<?>> event)
-	{
-		BOUNTY = Key.builder()
-				.type(TypeTokens.INTEGER_VALUE_TOKEN)
-				.id("bounty")
-				.name("Bounty")
-				.query(DataQuery.of("Bounty"))
-				.build();
-		event.register(BOUNTY);
+    {
+        BOUNTY = Key.builder()
+                .type(TypeTokens.INTEGER_VALUE_TOKEN)
+                .id("bounty")
+                .name("Bounty")
+                .query(DataQuery.of("Bounty"))
+                .build();
+        event.register(BOUNTY);
     }
 
     @Listener
     public void onServerStarted(GameStartedServerEvent event)
-	{
-		userStorageService = Sponge.getServiceManager().provideUnchecked(UserStorageService.class);
-		Optional<EconomyService> economyOpt = Sponge.getServiceManager().provide(EconomyService.class);
-		if (!economyOpt.isPresent())
-		{
-		    logger.error("RBounty REQUIRES a plugin with an economy API in order to function.");
-		    Sponge.getEventManager().unregisterPluginListeners(this);
-		    Sponge.getCommandManager()
-					.getOwnedBy(this)
-					.forEach(Sponge.getCommandManager()::removeMapping);
-		    logger.info("RBounty is now disabled.");
-		    return;
-		}
-		economyService = economyOpt.get();
-		PermissionService permissionService = Sponge.getServiceManager().provide(PermissionService.class).orElse(null);
-		if (permissionService != null)
-		{
-		    Builder adminBuilder = permissionService.newDescriptionBuilder(container);
-		    adminBuilder.id("rbounty.command.admin")
-					.description(Text.of("Allows the user to set bounties regardless of the bounty's current amount or the player's balance."))
-			    	.assign(PermissionDescription.ROLE_ADMIN, true)
-					.register();
+    {
+        userStorageService = Sponge.getServiceManager().provideUnchecked(UserStorageService.class);
+        Optional<EconomyService> economyOpt = Sponge.getServiceManager().provide(EconomyService.class);
+        if (!economyOpt.isPresent())
+        {
+            logger.error("RBounty REQUIRES a plugin with an economy API in order to function.");
+            Sponge.getEventManager().unregisterPluginListeners(this);
+            Sponge.getCommandManager()
+                    .getOwnedBy(this)
+                    .forEach(Sponge.getCommandManager()::removeMapping);
+            logger.info("RBounty is now disabled.");
+            return;
+        }
+        economyService = economyOpt.get();
+        PermissionService permissionService = Sponge.getServiceManager().provide(PermissionService.class).orElse(null);
+        if (permissionService != null)
+        {
+            Builder adminBuilder = permissionService.newDescriptionBuilder(container);
+            adminBuilder.id("rbounty.command.admin")
+                    .description(Text.of(
+                            "Allows the user to set bounties regardless of the bounty's current amount or the player's balance."))
+                    .assign(PermissionDescription.ROLE_ADMIN, true)
+                    .register();
 
-		    Builder userBuilder = permissionService.newDescriptionBuilder(container);
-		    userBuilder.id("rbounty.command.user")
-					.description(Text.of("Allows the user to view, add to, and claim bounties."))
-					.assign(PermissionDescription.ROLE_USER, true)
-					.register();
-		}
-			data = new RBountyData(logger);
-			logger.info("RBounty loaded");
+            Builder userBuilder = permissionService.newDescriptionBuilder(container);
+            userBuilder.id("rbounty.command.user")
+                    .description(Text.of("Allows the user to view, add to, and claim bounties."))
+                    .assign(PermissionDescription.ROLE_USER, true)
+                    .register();
+        }
+        data = new RBountyData(logger);
+        logger.info("RBounty loaded");
     }
 
-	private void loadConfig() throws IOException, ObjectMappingException
-	{
-		//Config
-		this.configNode = this.configLoader.load();
-		@SuppressWarnings("UnstableApiUsage") TypeToken<GeneralConfig> type = TypeToken.of(GeneralConfig.class);
-		this.config = configNode.getValue(type, new GeneralConfig());
-		configNode.setValue(type, this.config);
-		this.configLoader.save(configNode);
-		//End config
-	}
+    @SuppressWarnings("UnstableApiUsage")
+    private void loadConfig() throws IOException, ObjectMappingException
+    {
+        //Config
+        CommentedConfigurationNode configNode = this.configLoader.load();
+        TypeToken<GeneralConfig> type = TypeToken.of(GeneralConfig.class);
+        this.config = configNode.getValue(type, new GeneralConfig());
+        configNode.setValue(type, this.config);
+        this.configLoader.save(configNode);
+        //End config
+    }
 
-    private CommandSpec bountySet = CommandSpec.builder()
-			.description(Text.of("Sets a player's bounty"))
-	    	.permission("rbounty.command.admin")
-	    	.arguments(GenericArguments.onlyOne(GenericArguments.user(Text.of("user"))),
-		    	GenericArguments.onlyOne(GenericArguments.integer(Text.of("bounty"))))
-	    	.executor(new SetBounty(this))
-			.build();
+    private final CommandSpec bountySet = CommandSpec.builder()
+            .description(Text.of("Sets a player's bounty"))
+            .permission("rbounty.command.admin")
+            .arguments(GenericArguments.onlyOne(GenericArguments.user(Text.of("user"))),
+                    GenericArguments.onlyOne(GenericArguments.integer(Text.of("bounty"))))
+            .executor(new SetBounty(this))
+            .build();
 
-    private CommandSpec bountyView = CommandSpec.builder()
-			.description(Text.of("Get a player's current bounty"))
-	    	.permission("rbounty.command.user")
-	    	.arguments(GenericArguments.optional(GenericArguments.onlyOne(GenericArguments.user(Text.of("user")))))
-	    	.executor(new ViewBounty(this))
-			.build();
+    private final CommandSpec bountyView = CommandSpec.builder()
+            .description(Text.of("Get a player's current bounty"))
+            .permission("rbounty.command.user")
+            .arguments(GenericArguments.optional(GenericArguments.onlyOne(GenericArguments.user(Text.of("user")))))
+            .executor(new ViewBounty(this))
+            .build();
 
-    private CommandSpec bountyAdd = CommandSpec.builder()
-			.description(Text.of("Add to a player's bounty"))
-	    	.permission("rbounty.command.user")
-	    	.arguments(GenericArguments.onlyOne(GenericArguments.user(Text.of("user"))),
-		    	GenericArguments.onlyOne(GenericArguments.integer(Text.of("bounty"))))
-	    	.executor(new AddBounty(this))
-			.build();
+    private final CommandSpec bountyAdd = CommandSpec.builder()
+            .description(Text.of("Add to a player's bounty"))
+            .permission("rbounty.command.user")
+            .arguments(GenericArguments.onlyOne(GenericArguments.user(Text.of("user"))),
+                    GenericArguments.onlyOne(GenericArguments.integer(Text.of("bounty"))))
+            .executor(new AddBounty(this))
+            .build();
 
 
-    private CommandSpec bountyTop = CommandSpec.builder()
-			.description(Text.of("Shows the bounty leaderboards"))
-	    	.permission("rbounty.command.user")
-	    	.arguments(GenericArguments.optional(GenericArguments.onlyOne(GenericArguments.integer(Text.of("page")))))
-	    	.executor(new TopBounty(this))
-			.build();
+    private final CommandSpec bountyTop = CommandSpec.builder()
+            .description(Text.of("Shows the bounty leaderboards"))
+            .permission("rbounty.command.user")
+            .arguments(GenericArguments.optional(GenericArguments.onlyOne(GenericArguments.integer(Text.of("page")))))
+            .executor(new TopBounty())
+            .build();
 
-    private CommandSpec bountyTopOnline = CommandSpec.builder()
-	    	.description(Text.of("Shows the bounty leaderboards for online players."))
-	    	.permission("rbounty.command.user")
-	    	.arguments(GenericArguments.optional(GenericArguments.onlyOne(GenericArguments.integer(Text.of("page")))))
-	    	.executor(new TopOnlineBounty(this)).build();
+    private final CommandSpec bountyTopOnline = CommandSpec.builder()
+            .description(Text.of("Shows the bounty leaderboards for online players."))
+            .permission("rbounty.command.user")
+            .arguments(GenericArguments.optional(GenericArguments.onlyOne(GenericArguments.integer(Text.of("page")))))
+            .executor(new TopOnlineBounty()).build();
 
-    private CommandSpec bountyMain = CommandSpec.builder()
-			.description(Text.of("Master command for bounty"))
-	    	.permission("rbounty.command.user")
-			.child(bountySet, "set")
-			.child(bountyView, "view")
-	    	.child(bountyAdd, "add")
-			.child(bountyTop, "top", "leaderboard")
-	    	.child(bountyTopOnline, "topOnline", "leaderboardOnline")
-			.build();
+    private final CommandSpec bountyMain = CommandSpec.builder()
+            .description(Text.of("Master command for bounty"))
+            .permission("rbounty.command.user")
+            .child(bountySet, "set")
+            .child(bountyView, "view")
+            .child(bountyAdd, "add")
+            .child(bountyTop, "top", "leaderboard")
+            .child(bountyTopOnline, "topOnline", "leaderboardOnline")
+            .build();
 }

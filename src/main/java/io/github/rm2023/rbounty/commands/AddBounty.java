@@ -2,8 +2,6 @@ package io.github.rm2023.rbounty.commands;
 
 import io.github.rm2023.rbounty.RBountyPlugin;
 import io.github.rm2023.rbounty.Utility.Helper;
-import io.github.rm2023.rbounty.config.GeneralConfig;
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
@@ -22,7 +20,7 @@ import java.math.BigDecimal;
 
 public class AddBounty implements CommandExecutor
 {
-    private RBountyPlugin instance;
+    private final RBountyPlugin instance;
 
     public AddBounty(RBountyPlugin rBountyPlugin)
     {
@@ -30,11 +28,10 @@ public class AddBounty implements CommandExecutor
     }
 
     @Override
-    @NonNull
-    public CommandResult execute(@NonNull CommandSource src, CommandContext args) throws CommandException
+    public CommandResult execute(CommandSource src, CommandContext args) throws CommandException
     {
-        User user = args.<User>getOne("user").get();
-        int bounty = args.<Integer>getOne("bounty").get();
+        User user = args.<User>getOne("user").orElseThrow(() -> new CommandException(Text.of("Failed to get user!")));
+        int bounty = args.<Integer>getOne("bounty").orElseThrow(() -> new CommandException(Text.of("You need to supply an amount!")));
         if (!(src instanceof Player))
         {
             throw new CommandException(Text.builder("Only a player may run this command.").color(TextColors.RED).build());
@@ -43,10 +40,12 @@ public class AddBounty implements CommandExecutor
         {
             throw new CommandException(Text.builder("Bounty must be a positive integer.").color(TextColors.RED).build());
         }
-        UniqueAccount account = instance.getEconomyService().getOrCreateAccount(((Player) src).getUniqueId()).orElse(null);
+        UniqueAccount account = instance.getEconomyService().getOrCreateAccount(((Player) src).getUniqueId()).orElse(
+                null);
         if (account == null)
         {
-            throw new CommandException(Text.builder("An error occured. Check economy plugin for more information.").color(TextColors.RED).build());
+            throw new CommandException(Text.builder("An error occured. Check economy plugin for more information.").color(
+                    TextColors.RED).build());
         }
         if (account.getBalance(instance.getEconomyService().getDefaultCurrency()).compareTo(BigDecimal.valueOf(bounty)) < 0)
         {
@@ -71,19 +70,26 @@ public class AddBounty implements CommandExecutor
             if (instance.data.getBounty(user) == bounty)
             {
                 Helper.broadcast(instance.getConfig().bountySetMessage
-                        .replace("%bounty%", instance.getEconomyService().getDefaultCurrency().format(BigDecimal.valueOf(instance.data.getBounty(user))).toPlain())
+                        .replace("%bounty%",
+                                instance.getEconomyService().getDefaultCurrency().format(BigDecimal.valueOf(instance.data.getBounty(
+                                        user))).toPlain())
                         .replace("%player%", user.getName()), src);
             }
-            else {
+            else
+            {
                 Helper.broadcast(instance.getConfig().bountyIncreasedMessage
                         .replace("%difference%", Integer.toString(bounty))
-                        .replace("%bounty%", instance.getEconomyService().getDefaultCurrency().format(BigDecimal.valueOf(instance.data.getBounty(user))).toPlain())
+                        .replace("%bounty%",
+                                instance.getEconomyService().getDefaultCurrency().format(BigDecimal.valueOf(instance.data.getBounty(
+                                        user))).toPlain())
                         .replace("%player%", user.getName()), src);
             }
             return CommandResult.success();
         }
-        else{
-            throw new CommandException(Text.of(TextColors.RED, "Error while trying to add bounty! Check console for details"));
+        else
+        {
+            throw new CommandException(Text.of(TextColors.RED,
+                    "Error while trying to add bounty! Check console for details"));
         }
     }
 }

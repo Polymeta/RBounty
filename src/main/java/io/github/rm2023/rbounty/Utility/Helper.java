@@ -1,13 +1,11 @@
 package io.github.rm2023.rbounty.Utility;
 
 import io.github.rm2023.rbounty.RBountyPlugin;
-import io.github.rm2023.rbounty.config.GeneralConfig;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
-import org.spongepowered.api.text.format.TextStyles;
 import org.spongepowered.api.text.serializer.TextSerializers;
 
 import java.math.BigDecimal;
@@ -46,7 +44,8 @@ public class Helper
 
         ArrayList<Map.Entry<UUID, Integer>> lb = RBountyPlugin.getInstance().data.getLeaderboard();
 
-        if (lb.size() <= start || start < 0 || start >= end || lb.get(start).getValue() == 0) {
+        if (lb.size() <= start || start < 0 || start >= end || lb.get(start).getValue() == 0)
+        {
             return fail;
         }
 
@@ -64,7 +63,8 @@ public class Helper
                 i += 1;
                 user = RBountyPlugin.getInstance().getUserStorageService().get(lb.get(i).getKey()).get();
                 val = lb.get(i).getValue();
-                while (!user.isOnline()) {
+                while (!user.isOnline())
+                {
                     i += 1;
                     user = RBountyPlugin.getInstance().getUserStorageService().get(lb.get(i).getKey()).get();
                     val = lb.get(i).getValue();
@@ -90,7 +90,8 @@ public class Helper
                 continue;
             }
             builder.append(Text.of((i + 1 - skip) + ". " + user.getName() + ", "
-                    + (RBountyPlugin.getInstance().getEconomyService().getDefaultCurrency().format(BigDecimal.valueOf(val)).toPlain()) + "\n"));
+                    + (RBountyPlugin.getInstance().getEconomyService().getDefaultCurrency().format(BigDecimal.valueOf(
+                    val)).toPlain()) + "\n"));
         }
         builder.append(Text.of("-----------------------------------------------------"));
         builder.color(TextColors.BLUE);
